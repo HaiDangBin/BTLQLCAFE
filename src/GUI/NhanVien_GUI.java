@@ -40,7 +40,7 @@ public class NhanVien_GUI extends JPanel {
                 nv.getMaNV(),
                 nv.getTenNV(),
                 nv.getSdt(),
-                nv.getMaLoai()
+                nv.getChucVu()
             });
         }
     }

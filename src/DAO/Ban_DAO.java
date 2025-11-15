@@ -15,35 +15,71 @@ public class Ban_DAO {
 
 
     // Phương thức lấy tất cả bàn từ DB
-    public List<Ban> getAllBan() {
+	public List<Ban> getAllBan() {
         List<Ban> danhSachBan = new ArrayList<>();
         Connection con = DBconnection.getInstance().getConnection();
+        Statement statement = null;
+        ResultSet rs = null;
         
         try {
-            String sql = "SELECT MaBan, viTri, SucChua, trangThai FROM Ban"; 
-            Statement statement = con.createStatement();
-            ResultSet rs = statement.executeQuery(sql);
+            String sql = "SELECT MaBan, viTri, SucChua, TrangThai FROM Ban"; 
+            statement = con.createStatement();
+            rs = statement.executeQuery(sql);
             
             while (rs.next()) {
                 String maBan = rs.getString("MaBan");
                 String viTri = rs.getString("viTri");
                 int sucChua = rs.getInt("SucChua");
+                // Xử lý giá trị null/rỗng từ DB
                 String trangThai = rs.getString("TrangThai");
-                
-                // THÊM ĐIỀU KIỆN XỬ LÝ NULL NGAY TẠI ĐÂY
+                if (trangThai == null || trangThai.trim().isEmpty()) {
+                    trangThai = "Trống"; // Gán giá trị mặc định hợp lý
+                }
 
-             // Đảm bảo logic này được thêm:
-             if (trangThai == null || trangThai.trim().isEmpty()) {
-                 trangThai = "Lỗi dữ liệu"; // Gán giá trị chuỗi hợp lệ (không null)
-             }
-
-             Ban ban = new Ban(maBan, viTri ,sucChua, trangThai);
+                Ban ban = new Ban(maBan, viTri ,sucChua, trangThai);
                 danhSachBan.add(ban);
             }
         } catch (Exception e) {
             e.printStackTrace();
+        } finally {
+             try {
+                if (rs != null) rs.close();
+                if (statement != null) statement.close();
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
         }
         return danhSachBan;
+    }
+    public boolean createBan(Ban ban) {
+        Connection con = DBconnection.getInstance().getConnection();
+        PreparedStatement stmt = null;
+        String sql = "INSERT INTO Ban (maBan, viTri, sucChua, trangThai) VALUES (?, ?, ?, ?)";
+
+        try {
+            stmt = con.prepareStatement(sql);
+            stmt.setString(1, ban.getMaBan());
+            stmt.setString(2, ban.getViTri());
+            stmt.setInt(3, ban.getSucChua());
+            stmt.setString(4, ban.getTrangThai());
+
+            int result = stmt.executeUpdate();
+            
+            // Nếu không dùng auto-commit, bạn cần gọi con.commit() tại đây
+            // if (!con.getAutoCommit()) { con.commit(); }
+
+            return result > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            // Đóng PreparedStatement
+            try {
+                if (stmt != null) stmt.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
     }
  // Trong DAO.Ban_DAO.java, thay thế phương thức getBansByCondition()
 

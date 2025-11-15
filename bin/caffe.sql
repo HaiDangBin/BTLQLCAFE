@@ -395,7 +395,18 @@ VALUES
 ('B027', N'Tầng 2', 4, N'Trống'),
 ('B028', N'Tầng 1', 2, N'Có khách'),
 ('B029', N'Tầng 1', 10, N'Trống'),
-('B030', N'Tầng 1', 8, N'Trống');
+('B030', N'Tầng 1', 8, N'Trống'),
+
+('B031', N'Tầng 1', 2, N'Trống'),
+('B032', N'Tầng 1', 4, N'Trống'),
+('B033', N'Tầng 1', 2, N'Trống'),
+('B034', N'Tầng 1', 2, N'Trống'),
+('B035', N'Tầng 1', 6, N'Trống'),
+('B036', N'Tầng 1', 8, N'Trống'),
+('B037', N'Tầng 1', 8, N'Trống'),
+('B038', N'Tầng 1', 10, N'Trống'),
+('B039', N'Tầng 1', 10, N'Trống'),
+('B040', N'Tầng 1', 10, N'Trống');
 Go
 -- ===================================
 -- DỮ LIỆU MẪU CHO ĐƠN ĐẶT BÀN
@@ -588,3 +599,4 @@ ADD maBan VARCHAR(10) NULL;
 ALTER TABLE DonDatBan
 ADD CONSTRAINT FK_DonDatBan_Ban
 FOREIGN KEY (maBan) REFERENCES Ban(maBan);
+

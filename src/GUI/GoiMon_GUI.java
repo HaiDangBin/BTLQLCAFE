@@ -27,12 +27,15 @@ import DAO.SanPham_DAO;
 import Entity.SanPham;
 import DAO.Ban_DAO; // <-- THÊM DÒNG NÀY
 import Entity.Ban;
+import DAO.DonDatBan_DAO;
+import Entity.DonDatBan;
 
 public class GoiMon_GUI extends JDialog {
 	private SanPham_DAO sanPhamDAO;
     private final DecimalFormat df = new DecimalFormat("#,###");
     private Ban_DAO banDAO; 
 	private Ban banHienTai;
+	private DonDatBan_DAO ddbDAO; // ⭐ THÊM
 
     private final Vector<Vector<Object>> orderData = new Vector<>();
 	private JTextField txtTimKiem;
@@ -66,6 +69,7 @@ public class GoiMon_GUI extends JDialog {
         this.banDAO = new Ban_DAO();
         this.tenKhachHang = tenKH; // Gán giá trị
         this.sdtKhachHang = sdt;
+        this.ddbDAO = new DonDatBan_DAO();
         this.setUndecorated(true);
         try {
             this.banHienTai = banDAO.layBanTheoMa(this.maBan);
@@ -389,26 +393,56 @@ public class GoiMon_GUI extends JDialog {
         if (soLuongNguoiDatCoc < 0) {
             soLuongNguoiDatCoc = 0;
         }
+        String maKHHienTai = "KHL00"; // Mặc định là Khách lẻ
+
+        try {
+            // Giả sử có hàm tìm đơn đặt bàn đang hoạt động theo mã bàn
+            DonDatBan ddb = ddbDAO.getDonDatBanActiveByMaBan(this.maBan);
+            
+            if (ddb != null && ddb.getMaKH() != null) {
+                maKHHienTai = ddb.getMaKH().getMaKH();
+                // Cập nhật thông tin khách hàng (chỉ để hiển thị nếu cần)
+                this.tenKhachHang = ddb.getMaKH().getTenKH();
+                this.sdtKhachHang = ddb.getMaKH().getsDT();
+            
+            } else {
+                System.out.println("Không tìm thấy Đơn Đặt Bàn đang hoạt động. Dùng Mã KH mặc định: " + maKHHienTai);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Lỗi khi truy vấn Đơn Đặt Bàn: " + e.getMessage(), "Lỗi CSDL", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        JFrame ownerFrame = (JFrame) SwingUtilities.getWindowAncestor(this.getParent());
+        JDialog thanhToanDialog = new JDialog(ownerFrame, "THANH TOÁN HÓA ĐƠN BÀN " + this.maBan, true);
         // 2. Xác định phương thức thanh toán
         boolean isChuyenKhoan = phuongThucThanhToan.equals("Chuyển khoản");
-        
+        String maNVHienTai = "NV001";
         
         // 4. Mở giao diện chi tiết hóa đơn 
-        ChiTietDonDatBan_GUI chiTietUI = new ChiTietDonDatBan_GUI(
-                (JFrame) this.getOwner(), 
-                orderModel, 
-                isChuyenKhoan, 
-                this.banHienTai,
-                this.tenKhachHang,
-                this.sdtKhachHang
+        ChiTietHoaDonSanPham_GUI chiTietPanel = new ChiTietHoaDonSanPham_GUI(
+                this,                           // 1. Đối tượng GoiMon_GUI (this)
+                orderModel,                     // 2. DefaultTableModel
+                isChuyenKhoan,                  // 3. boolean
+                this.banHienTai.getMaBan(),     // 4. String maBan (sử dụng .getMaBan())
+                maNVHienTai,                    // 5. String maNV
+                maKHHienTai                     // 6. String maKH
             );
         
         // 5. Đóng cửa sổ GoiMon_GUI hiện tại
-        this.dispose(); 
+        thanhToanDialog.add(chiTietPanel);
+        thanhToanDialog.pack(); // Tự động căn chỉnh
+        thanhToanDialog.setLocationRelativeTo(ownerFrame);
         
         // 6. Hiển thị dialog Chi tiết hóa đơn
-        chiTietUI.setVisible(true);
+        thanhToanDialog.setVisible(true);
     }
+    public void clearOrderTable1() {
+		DefaultTableModel tblModel = (DefaultTableModel) table.getModel();
+		tblModel.setRowCount(0);
+		recalculateTotal();
+	}
     
 
     class ButtonEditor extends javax.swing.AbstractCellEditor implements javax.swing.table.TableCellEditor, ActionListener {

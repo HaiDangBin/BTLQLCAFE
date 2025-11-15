@@ -102,44 +102,40 @@ public class KhachHang_DAO {
     }
     public KhachHang getKhachHangByMa(String maKH) {
         KhachHang kh = null;
-        Connection con = DBconnection.getConnection(); // Sử dụng conn hoặc lấy lại connection
-        PreparedStatement stmt = null;
-        ResultSet rs = null;
+        
+        // ⭐ Lấy Connection. KHÔNG đặt Connection trong try-with-resources
+        // để tránh đóng kết nối khi nó là kết nối Singleton dùng chung.
+        Connection con = DBconnection.getConnection(); 
         
         // ⭐ SQL: Truy vấn dựa trên maKH
         String sql = "SELECT maKH, tenKH, sDT, eMail FROM KhachHang WHERE maKH = ?";
         
-        try {
-            // Kiểm tra xem conn có đang mở và hợp lệ không, nếu không lấy lại
-            if (con == null || con.isClosed()) {
-                con = DBconnection.getConnection();
-            }
+        // Sử dụng try-with-resources cho PreparedStatement và ResultSet
+        try (PreparedStatement stmt = con.prepareStatement(sql)) {
             
-            stmt = con.prepareStatement(sql);
+            // Bỏ kiểm tra con.isClosed() và lấy lại connection vì DBconnection phải đảm bảo điều này.
+
             stmt.setString(1, maKH);
-            rs = stmt.executeQuery();
             
-            if (rs.next()) {
-                // ⭐ Tạo đối tượng KhachHang đầy đủ từ ResultSet
-                kh = new KhachHang(
-                    rs.getString("maKH"),
-                    rs.getString("tenKH"),
-                    rs.getString("sDT"),
-                    rs.getString("eMail") // Lấy cả eMail
-                );
-            }
+            // Dùng try-with-resources lồng nhau cho ResultSet
+            try (ResultSet rs = stmt.executeQuery()) { 
+                if (rs.next()) {
+                    // ⭐ Tạo đối tượng KhachHang đầy đủ từ ResultSet
+                    kh = new KhachHang(
+                        rs.getString("maKH"),
+                        rs.getString("tenKH"),
+                        rs.getString("sDT"),
+                        rs.getString("eMail")
+                    );
+                }
+            } // rs.close() được gọi tự động
+            
         } catch (SQLException e) {
             System.err.println("Lỗi SQL khi tìm Khách hàng theo Mã: " + e.getMessage());
             e.printStackTrace();
-        } finally {
-            // Đóng tài nguyên
-            try {
-                if (rs != null) rs.close();
-                if (stmt != null) stmt.close();
-            } catch (SQLException ex) {
-                ex.printStackTrace();
-            }
-        }
+        } 
+        // KHÔNG CÓ finally và KHÔNG CÓ con.close()
+        
         return kh;
     }
 }

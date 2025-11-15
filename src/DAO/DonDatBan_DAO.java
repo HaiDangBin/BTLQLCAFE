@@ -14,12 +14,25 @@ import java.util.Random;
 import javax.swing.table.DefaultTableModel;
 
 import Entity.Ban;
+import Entity.ChucVu;
 import Entity.DonDatBan;
 import Entity.KhachHang;
 import Entity.NhanVien;
 import connectDB.DBconnection;
 
 public class DonDatBan_DAO {
+	
+	private ChucVu_DAO chucVuDAO;
+	private KhachHang_DAO khachHangDAO;
+	
+	
+	public DonDatBan_DAO() {
+        // Khắc phục lỗi ChucVu_DAO (bạn đã làm)
+        this.chucVuDAO = new ChucVu_DAO(); 
+        
+        // ⭐ KHẮC PHỤC LỖI HIỆN TẠI (KhachHang_DAO) ⭐
+        this.khachHangDAO = new KhachHang_DAO(); 
+    }
 	public List<Object[]> getAllDonDatBanDetails() {
         List<Object[]> danhSachDatBan = new ArrayList<>();
         Connection con = null; 
@@ -254,70 +267,70 @@ public class DonDatBan_DAO {
 	        WHERE ddb.maDatBan = ?
 	        """;
 
-	    try (Connection con = DBconnection.getConnection();
-	         PreparedStatement stmt = con.prepareStatement(sql)) {
+	    // ⭐ 1. Lấy kết nối ra khỏi try-with-resources.
+	    Connection con = DBconnection.getConnection(); 
+	    if (con == null) return null; // Nên kiểm tra null.
 
-	        if (con == null) return null;
-
+	    // ⭐ 2. CHỈ sử dụng try-with-resources cho PreparedStatement.
+	    try (PreparedStatement stmt = con.prepareStatement(sql)) { 
+	        
 	        stmt.setString(1, maDDB);
+	        
+	        // ⭐ 3. Dùng try-with-resources cho ResultSet (rs).
 	        try (ResultSet rs = stmt.executeQuery()) {
 	            if (rs.next()) {
-	                // LẤY DỮ LIỆU
+	                // LẤY DỮ LIỆU CƠ BẢN
 	                String maDatBan = rs.getString("maDatBan");
-	                java.sql.Date ngayDat = rs.getDate("ngayDat"); // ĐÚNG: java.sql.Date
+	                java.sql.Date ngayDat = rs.getDate("ngayDat");
 	                int soLuongKhach = rs.getInt("soLuongKhach");
 	                String trangThai = rs.getString("trangThai");
 
 	                String maKH = rs.getString("maKH");
 	                String maNV = rs.getString("maNV");
-	                String maBanDB = rs.getString("maBan");
+	                String maBanDB = rs.getString("maBan"); // Lỗi xảy ra khi đọc tiếp sau khi gọi DAO phụ
 
-	                // TẠO KHÁCH HÀNG
+	                // TẠO KHÁCH HÀNG (Gọi DAO phụ)
 	                KhachHang khachHang = null;
 	                if (maKH != null && !maKH.trim().isEmpty()) {
-	                    khachHang = new KhachHang_DAO().getKhachHangByMa(maKH);
+	                    // Đảm bảo khachHangDAO không đóng Connection (đã sửa ở bước trước)
+	                    khachHang = khachHangDAO.getKhachHangByMa(maKH); 
 	                    if (khachHang == null) {
-	                        khachHang = new KhachHang(maKH, "Khách lẻ", "");
+	                        khachHang = new KhachHang(maKH, "Khách lẻ (Error)", "");
 	                    }
 	                } else {
 	                    khachHang = new KhachHang("KH000", "Khách lẻ", "");
 	                }
 
 	                // TẠO NHÂN VIÊN
+	                ChucVu chucVuCuaNV = chucVuDAO.findById("L01");
 	                NhanVien nhanVien = null;
 	                if (maNV != null && !maNV.trim().isEmpty()) {
-	                    nhanVien = new NhanVien(maNV, "Nhân viên", "", "");
+	                    nhanVien = new NhanVien(maNV, "Nhân viên", "", "","",chucVuCuaNV);
 	                } else {
-	                    nhanVien = new NhanVien("NV01", "Admin", "", "");
+	                    nhanVien = new NhanVien("NV01", "Admin", "", "","",chucVuCuaNV);
 	                }
 
-	                // TẠO BAN
+	                // TẠO BAN (Tiếp tục đọc ResultSet, tại đây lỗi xảy ra nếu Connection đã đóng)
 	                Ban ban = null;
 	                if (maBanDB != null && !maBanDB.trim().isEmpty()) {
-	                    String viTri = rs.getString("viTri");
+	                    // CÁC DÒNG ĐỌC RS Ở ĐÂY SẼ GÂY LỖI NẾU KẾT NỐI ĐÃ BỊ ĐÓNG.
+	                    String viTri = rs.getString("viTri"); // Dòng này hoặc tương tự có thể là dòng 317
 	                    int sucChua = rs.getInt("banSucChua");
 	                    String trangThaiBan = rs.getString("banTrangThai");
 	                    ban = new Ban(maBanDB, viTri, sucChua, trangThaiBan);
 	                }
 
-	                // DÙNG CONSTRUCTOR ĐÚNG TRONG DonDatBan
-	                ddb = new DonDatBan(
-	                    maDatBan,
-	                    ngayDat,           // java.sql.Date
-	                    soLuongKhach,      // int
-	                    trangThai,         // String
-	                    khachHang,         // KhachHang
-	                    nhanVien           // NhanVien
-	                );
-
-	                // GÁN BAN
+	                // ... (Logic tạo DonDatBan) ...
+	                ddb = new DonDatBan(maDatBan, ngayDat, soLuongKhach, trangThai, khachHang, nhanVien);
 	                ddb.setBan(ban);
 	            }
-	        }
+	        } // rs.close() tự động ở đây
 	    } catch (SQLException e) {
 	        System.err.println("Lỗi SQL khi tìm kiếm DonDatBan theo mã: " + e.getMessage());
 	        e.printStackTrace();
-	    }
+	    } // stmt.close() tự động ở đây
+	    // ⭐ 4. KHÔNG ĐÓNG Connection con ở đây nếu nó là Singleton.
+
 	    return ddb;
 	}
 	public DefaultTableModel getMonAnByMaDDB(String maDDB) {
@@ -374,6 +387,124 @@ public class DonDatBan_DAO {
 	        ma = prefix + String.format("%03d", rand.nextInt(1000));
 	    } while (getDonDatBanByMa(ma) != null); // Đảm bảo không trùng
 	    return ma;
+	}
+	public DonDatBan getLatestActiveDonDatBanByMaBan(String maBan) {
+        DonDatBan ddb = null;
+        
+        DBconnection.getInstance().connect();
+
+        // 💡 Giả định: 
+        // 1. Tên cột trong DB tương ứng với Entity: maDatBan, ngayDat, soLuongKhach, trangThai, maKH, maNV, maBan.
+        // 2. Sử dụng TOP 1 cho SQL Server để lấy bản ghi mới nhất.
+        String sql = "SELECT TOP 1 "
+                   + "    ddb.maDatBan, ddb.ngayDat, ddb.soLuongKhach, ddb.trangThai, ddb.maNV, "
+                   + "    kh.maKH, kh.tenKH, kh.sDT " 
+                   + "FROM "
+                   + "    DonDatBan ddb "
+                   + "JOIN "
+                   + "    KhachHang kh ON ddb.maKH = kh.maKH "
+                   + "WHERE "
+                   + "    ddb.maBan = ? " 
+                   + "    AND ddb.trangThai IN ('Đã đặt', 'Đang phục vụ') " 
+                   + "ORDER BY "
+                   + "    ddb.ngayDat DESC, ddb.maDatBan DESC"; 
+
+        try (Connection con = DBconnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            
+            ps.setString(1, maBan);
+            
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    // 1. Tải thông tin Khách hàng (Entity.KhachHang)
+                    String maKHStr = rs.getString("maKH");
+                    String tenKH = rs.getString("tenKH");
+                    String sdtKH = rs.getString("sDT"); // Lấy theo tên cột trong DB
+                    
+                    // Khởi tạo KhachHang (Entity.KhachHang)
+                    // Giả định: Cần thêm tham số email vào constructor nếu DB có cột này
+                    KhachHang khachHang = new KhachHang(maKHStr, tenKH, sdtKH); 
+
+                    // 2. Tải thông tin Đơn đặt bàn (Entity.DonDatBan)
+                    String maDDB = rs.getString("maDatBan");
+                    String trangThai = rs.getString("trangThai");
+                    Date ngayDat = rs.getDate("ngayDat"); // Dùng java.sql.Date
+                    int soLuongKhach = rs.getInt("soLuongKhach");
+                    
+                    String maNVStr = rs.getString("maNV");
+                    // Giả định: Tạo đối tượng NhanVien tối thiểu (Entity.NhanVien)
+                    NhanVien nhanVien = new NhanVien(maNVStr); 
+                    
+                    // 3. Khởi tạo DonDatBan sử dụng Constructor chính
+                    ddb = new DonDatBan(maDDB, ngayDat, soLuongKhach, trangThai, khachHang, nhanVien); 
+                    
+                    // 4. Gán đối tượng Ban (Entity.Ban) nếu cần thiết (dựa trên maBan truyền vào)
+                    // Ban ban = new Ban(maBan); // Giả định: Ban có constructor(maBan)
+                    // ddb.setBan(ban); 
+                    
+                    // Do maKH trong DonDatBan Entity là KhachHang, và đã truyền vào constructor, 
+                    // nên không cần gọi ddb.setMaKH(khachHang) nữa.
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Lỗi CSDL khi truy vấn đơn đặt bàn hoạt động: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return ddb;
+    }
+	public DonDatBan getDonDatBanActiveByMaBan(String maBan) {
+	    DonDatBan ddb = null;
+	    Connection con = DBconnection.getInstance().getConnection(); 
+	    PreparedStatement stmt = null;
+	    ResultSet rs = null;
+
+	    try {
+	        // ⭐ SỬA LỖI: SỬ DỤNG TRIM(DDB.trangThai)
+	        // để loại bỏ khoảng trắng thừa khi so sánh trạng thái.
+	        String sql = "SELECT DDB.MaDatBan, DDB.maKH, DDB.maBan, DDB.soLuongKhach, DDB.trangThai, DDB.ngayDat, " +
+	                     "KH.tenKH, KH.sdt " + 
+	                     "FROM DonDatBan DDB " +
+	                     "JOIN KhachHang KH ON DDB.maKH = KH.maKH " +
+	                     // ⭐ THAY ĐỔI LỚN: Dùng TRIM() và N'...'
+	                     "WHERE DDB.maBan = ? AND UPPER(TRIM(DDB.trangThai)) IN (N'ĐÃ ĐẶT', N'ĐANG PHỤC VỤ')";
+	        
+	        stmt = con.prepareStatement(sql);
+	        stmt.setString(1, maBan);
+	        rs = stmt.executeQuery();
+
+	        if (rs.next()) {
+	            System.out.println("Đã tìm thấy Đơn Đặt Bàn đang hoạt động cho Mã Bàn: " + maBan);
+	            
+	            // 1. Tạo Entity Khách Hàng 
+	            KhachHang kh = new KhachHang();
+	            kh.setMaKH(rs.getString("maKH"));
+	            kh.setTenKH(rs.getString("tenKH"));
+	            kh.setsDT(rs.getString("sdt")); // Sử dụng setsDT() theo Entity của bạn
+
+	            // 2. Tạo Entity Bàn 
+	            Ban ban = new Ban();
+	            ban.setMaBan(rs.getString("maBan"));
+
+	            // 3. Tạo Entity Đơn Đặt Bàn
+	            ddb = new DonDatBan();
+	            ddb.setMaDatBan(rs.getString("MaDatBan")); 
+	            
+	            ddb.setMaKH(kh);       
+	            ddb.setBan(ban);            
+	            ddb.setSoLuongKhach(rs.getInt("soLuongKhach"));
+	            ddb.setTrangThai(rs.getString("trangThai"));
+	            ddb.setNgayDat(rs.getDate("ngayDat")); 
+	        } else {
+	             System.out.println("Không tìm thấy Đơn Đặt Bàn đang hoạt động. Dùng Mã KH mặc định: KHL00");
+	        }
+
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	    } finally {
+	        try { if (rs != null) rs.close(); } catch (SQLException e) { e.printStackTrace(); }
+	        try { if (stmt != null) stmt.close(); } catch (SQLException e) { e.printStackTrace(); }
+	    }
+	    return ddb;
 	}
 
 }

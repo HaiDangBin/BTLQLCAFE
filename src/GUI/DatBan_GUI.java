@@ -61,6 +61,7 @@ public class DatBan_GUI extends JPanel{
     private RoundedButton btnDatBan;
     protected DonDatBan_DAO donDatBanDAO;
     protected KhachHang_DAO khachHangDAO;
+    private RoundedButton btnThemBan;
 	public DatBan_GUI() {
 	    DBconnection.getInstance().connect();
 	    ban_DAO = new Ban_DAO();
@@ -107,12 +108,13 @@ public class DatBan_GUI extends JPanel{
 	    RoundedButton btnLocBanTrong = new RoundedButton("Bàn trống", new Color(0,153,76));
 	    RoundedButton btnLocBanDatTruoc = new RoundedButton("Bàn đã đặt", new Color(0,153,76));
 	    RoundedButton btnLocBanDangDung = new RoundedButton("Bàn có khách", new Color(0,153,76));
-	    RoundedButton btnGhepBan = new RoundedButton("Ghép bàn", new Color(0,153,76));
+	    
 	    btnDatBan = new RoundedButton("Đặt bàn", new Color(0,102,102));
 	    RoundedButton btnHuyBan = new RoundedButton("Hủy bàn đặt", new Color(102,0,0));
 	    RoundedButton btnXemCT = new RoundedButton("Xem chi tiết", new Color(102,102,0));
 	    RoundedButton btnGoiMon = new RoundedButton("Gọi món", new Color(153,75,0));
 	    RoundedButton btnThanhToan = new RoundedButton("Thanh toán", new Color(0,76,153));
+	    btnThemBan = new RoundedButton("Thêm bàn", new Color(0,153,76));
 	    
 
 	    // Căn giữa các nút và thêm khoảng cách giữa chúng
@@ -122,8 +124,6 @@ public class DatBan_GUI extends JPanel{
 	    btnLocBanDatTruoc.setMaximumSize(new Dimension(220,40));
 	    btnLocBanDangDung.setAlignmentX(Component.CENTER_ALIGNMENT);
 	    btnLocBanDangDung.setMaximumSize(new Dimension(220,40));
-	    btnGhepBan.setAlignmentX(Component.CENTER_ALIGNMENT);
-	    btnGhepBan.setMaximumSize(new Dimension(220,40));
 	    btnDatBan.setAlignmentX(Component.CENTER_ALIGNMENT);
 	    btnDatBan.setMaximumSize(new Dimension(220,40));
 	    btnDatBan.setEnabled(false);
@@ -135,14 +135,14 @@ public class DatBan_GUI extends JPanel{
 	    btnGoiMon.setMaximumSize(new Dimension(220,40));
 	    btnThanhToan.setAlignmentX(Component.CENTER_ALIGNMENT);
 	    btnThanhToan.setMaximumSize(new Dimension(220,40));
+	    btnThemBan.setAlignmentX(Component.CENTER_ALIGNMENT);
+	    btnThemBan.setMaximumSize(new Dimension(220,40));
 	    
 	    bxx.add(btnLocBanTrong);
 	    bxx.add(Box.createVerticalStrut(20)); // Khoảng cách giữa các nút
 	    bxx.add(btnLocBanDatTruoc);
 	    bxx.add(Box.createVerticalStrut(20));
 	    bxx.add(btnLocBanDangDung);
-	    bxx.add(Box.createVerticalStrut(20));
-	    bxx.add(btnGhepBan);
 	    bxx.add(Box.createVerticalStrut(20));
 	    bxx.add(btnDatBan);
 	    bxx.add(Box.createVerticalStrut(20));
@@ -153,6 +153,8 @@ public class DatBan_GUI extends JPanel{
 	    bxx.add(btnGoiMon);
 	    bxx.add(Box.createVerticalStrut(20));
 	    bxx.add(btnThanhToan);
+	    bxx.add(Box.createVerticalStrut(20));
+	    bxx.add(btnThemBan);
 
 	    pWest.add(bx); 
 	    pWest.add(Box.createVerticalStrut(10)); 
@@ -301,6 +303,18 @@ public class DatBan_GUI extends JPanel{
 	            txtMaBan.setText(maBan != null ? maBan : "");
 	        }
 	    });
+	    btnThemBan.addActionListener(new ActionListener() {
+	        
+	        @Override
+	        public void actionPerformed(ActionEvent e) {
+	            JFrame parentFrame = (JFrame) SwingUtilities.getWindowAncestor((Component) e.getSource()); // Lấy Frame chứa nút
+	            
+	            // ⭐ SỬA LỖI: Sử dụng "TênClass.this" để tham chiếu đến DatBan_GUI
+	            ThemBan_Dialog dialog = new ThemBan_Dialog(parentFrame, DatBan_GUI.this); 
+	            
+	            dialog.setVisible(true);
+	        }
+	    });
 	    
 	    btnLocBanTrong.addActionListener(new ActionListener() {
 	        @Override
@@ -320,6 +334,14 @@ public class DatBan_GUI extends JPanel{
 	            loadBanVaoGUI((String)null, "Đặt trước", 0);
 	        }
 	    });
+	    btnGoiMon.addActionListener(new ActionListener() {
+	        @Override
+	        public void actionPerformed(ActionEvent e) {
+	            handleGoiMonAction();
+	        }
+	    });
+	    
+	    
 	    // Bắt đầu đồng hồ
 	    startClock();	}
 	private JPanel createClockPanel() {
@@ -375,6 +397,96 @@ public class DatBan_GUI extends JPanel{
 		dateLabel.setText(dateText);
 	}
 	
+	private void handleGoiMonAction() {
+	    // 1. Kiểm tra xem bàn đã được chọn chưa
+	    if (selectedBan == null) {
+	        JOptionPane.showMessageDialog(this, "Vui lòng chọn một bàn để gọi món.", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
+	        return;
+	    }
+	    
+	    String maBan = selectedBan.getMaBan();
+	    
+	    // 2. TÌM ĐƠN ĐẶT BÀN ĐANG HOẠT ĐỘNG (Đã đặt hoặc Đang phục vụ)
+	    // ⭐ LƯU Ý: Phải đảm bảo DonDatBan_DAO có phương thức này và TẢI thông tin KhachHang
+	    // (Giả sử bạn đã triển khai phương thức getLatestActiveDonDatBanByMaBan(String maBan))
+	    DonDatBan ddbHienTai = donDatBanDAO.getLatestActiveDonDatBanByMaBan(maBan);
+
+	    String tenKH = "Khách lẻ"; // Giá trị mặc định nếu bàn trống hoặc không có đơn đặt
+	    String sdtKH = ""; // Giá trị mặc định
+
+	    // 3. Lấy thông tin khách hàng từ Đơn đặt bàn nếu tìm thấy
+	    if (ddbHienTai != null && ddbHienTai.getMaKH() != null) {
+	        KhachHang khachHang = ddbHienTai.getMaKH();
+	        tenKH = khachHang.getTenKH(); // Lấy Tên KH từ Đơn Đặt Bàn
+	        sdtKH = khachHang.getsDT();   // Lấy SĐT KH từ Đơn Đặt Bàn
+	    }
+	    
+	    // ⭐ 4. MỞ GIAO DIỆN GỌI MÓN
+	    try {
+	        // Lấy JFrame cha để truyền vào constructor của GoiMon_GUI
+	        JFrame parentFrame = (JFrame) SwingUtilities.getWindowAncestor(this);
+	        
+	        GoiMon_GUI goiMonUI = new GoiMon_GUI(
+	            parentFrame, 
+	            maBan, 
+	            tenKH, 
+	            sdtKH
+	        );
+	        goiMonUI.setVisible(true);
+	        
+	        // Sau khi gọi món, có thể cần cập nhật lại trạng thái bàn (Ví dụ: từ "Đặt trước" -> "Đang phục vụ")
+	        loadBanVaoGUI(); 
+
+	    } catch (Exception ex) {
+	        ex.printStackTrace();
+	        JOptionPane.showMessageDialog(this, "Lỗi khi mở giao diện Gọi món: " + ex.getMessage(), "Lỗi Hệ Thống", JOptionPane.ERROR_MESSAGE);
+	    }
+	}
+	
+	public void moHoaDonDatCoc(Ban banDuocChon, String tenKH, String sdt) {
+	    // 1. Kiểm tra trạng thái
+	    if (!banDuocChon.getTrangThai().equalsIgnoreCase("Trống")) {
+	         JOptionPane.showMessageDialog(this, "Bàn đang " + banDuocChon.getTrangThai() + ", không thể đặt cọc.", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
+	        return;
+	    }
+
+	    // 2. Chọn phương thức thanh toán tiền đặt cọc
+	    String[] options = {"Tiền mặt", "Chuyển khoản"};
+	    int choice = JOptionPane.showOptionDialog(this, 
+	        "Chọn phương thức thanh toán tiền đặt cọc:", 
+	        "Thanh toán Đặt Cọc", 
+	        JOptionPane.YES_NO_OPTION, 
+	        JOptionPane.QUESTION_MESSAGE, 
+	        null, 
+	        options, 
+	        options[0]);
+
+	    if (choice == JOptionPane.CLOSED_OPTION) {
+	        return; 
+	    }
+	    
+	    boolean isChuyenKhoan = (choice == 1);
+
+	    // 3. Tạo EMPTY DefaultTableModel (model rỗng báo hiệu chỉ thanh toán tiền cọc)
+	    String[] cols = {"Tên món", "SL", "Đơn giá", "Thành tiền"};
+	    DefaultTableModel emptyModel = new DefaultTableModel(cols, 0);
+
+	    // 4. Mở ChiTietDonDatBan_GUI
+	    ChiTietDonDatBan_GUI chiTiet = new ChiTietDonDatBan_GUI(
+	        (JFrame) SwingUtilities.getWindowAncestor(this), // Parent Frame
+	        emptyModel, // Model rỗng
+	        isChuyenKhoan, 
+	        banDuocChon, 
+	        tenKH, 
+	        sdt
+	    );
+	    chiTiet.setVisible(true);
+	    
+	    // 5. Cập nhật lại danh sách bàn sau khi dialog thanh toán đóng
+	    loadBanVaoGUI();; // Cần đảm bảo hàm này tồn tại để refresh trạng thái bàn
+	}
+	
+	
 	
 	class DatBanMoi_Dialog extends JDialog {
 		private DatBan_GUI parentGUI;
@@ -386,12 +498,14 @@ public class DatBan_GUI extends JPanel{
 	    private JLabel lblMaNV; 
 	    private JComboBox<String> cmbTrangThai;
 		private RoundedButton btnGoiSP;
-
+		private DatBan_GUI parentPanel;
+		private Ban selectedBan;
 	    public DatBanMoi_Dialog(JFrame parent, String maBan, int sucChua) {
 	    	super(parent, "Đặt Bàn Mới (" + maBan + ")", true);
 	        // Lưu thông tin bàn được chọn
 	        this.maBanDuocChon = maBan;
 	        this.sucChuaBan = sucChua;
+	        this.parentPanel = parentPanel;
 	        // Setup giao diện
 	        setupUI();
 	        
@@ -473,21 +587,19 @@ public class DatBan_GUI extends JPanel{
 	        pButtons.setBackground(Color.WHITE);
 	        
 	        btnXacNhan = new RoundedButton("Xác nhận Đặt", new Color(0, 102, 0));
-	        btnGoiSP = new RoundedButton("Gọi món", new Color(0,0,240));
 	        btnHuy = new RoundedButton("Hủy bỏ", new Color(102, 0, 0));
 	        
 	        Font btnFont = new Font("Segoe UI", Font.BOLD, 13);
 	        btnXacNhan.setFont(btnFont);
-	        btnGoiSP.setFont(btnFont);
 	        btnHuy.setFont(btnFont);
 	        
-	        Dimension buttonSize = new Dimension(120, 45);
+	        Dimension buttonSize = new Dimension(160, 45);
 	        btnXacNhan.setPreferredSize(buttonSize);
-	        btnGoiSP.setPreferredSize(buttonSize);
+	        
 	        btnHuy.setPreferredSize(buttonSize);
 
 	        pButtons.add(btnXacNhan);
-	        pButtons.add(btnGoiSP);
+	        
 	        pButtons.add(btnHuy);
 
 	        add(pMain, BorderLayout.CENTER);
@@ -520,49 +632,96 @@ public class DatBan_GUI extends JPanel{
 	        btnXacNhan.addActionListener(new ActionListener() {
 	            @Override
 	            public void actionPerformed(ActionEvent e) {
-	                if (validateInputs()) {
-	                    // 1. Xử lý đặt bàn + lưu DB
-	                    if (handleDatBanAction()) {
-	                        // 2. Mở ChiTietDonDatBan_GUI để in hóa đơn
-	                        String tenKH = txtTenKhachHang.getText().trim();
-	                        String sdt = txtSoDienThoai.getText().trim();
 
-	                        DefaultTableModel model = new DefaultTableModel(
-	                            new Object[]{"Tên món", "SL", "Đơn giá", "Thành tiền"}, 0
-	                        );
+	                String tenKH = txtTenKhachHang.getText().trim();
+	                String sdt = txtSoDienThoai.getText().trim();
 
-	                        Ban ban = new Ban(maBanDuocChon, null, sucChuaBan, "Đã đặt");
-	                        ChiTietDonDatBan_GUI chiTiet = new ChiTietDonDatBan_GUI(
-	                            (JFrame) getOwner(), model, false, ban, tenKH, sdt
-	                        );
-	                        chiTiet.setVisible(true);
-
-	                        // 3. Làm mới danh sách bàn
-	                        DatBan_GUI.this.loadBanVaoGUI(null, "Tất cả", 0);
-	                        DatBan_GUI.this.programmaticallySelectBan(null);
-
-	                        dispose();
-	                    }
+	                if (tenKH.isEmpty()) {
+	                    JOptionPane.showMessageDialog(null, "Vui lòng nhập tên khách hàng!");
+	                    return;
 	                }
+
+	                if (sdt.isEmpty() || !sdt.matches("0\\d{9}")) {
+	                    JOptionPane.showMessageDialog(null, "Số điện thoại không hợp lệ (10 số, bắt đầu bằng 0)");
+	                    return;
+	                }
+
+	                // ⭐ LẤY BÀN TỪ DATABASE — KHÔNG DÙNG selectedBan (sửa lỗi)
+	                Ban banDuocChon = ban_DAO.layBanTheoMa(maBanDuocChon);
+
+	                if (banDuocChon == null) {
+	                    JOptionPane.showMessageDialog(null, "Không tìm thấy bàn: " + maBanDuocChon);
+	                    return;
+	                }
+
+	                // ⭐ KIỂM TRA BÀN CÓ TRỐNG KHÔNG
+	                if (!banDuocChon.getTrangThai().equalsIgnoreCase("Trống")) {
+	                    JOptionPane.showMessageDialog(null, 
+	                        "Bàn đang " + banDuocChon.getTrangThai() + ", không thể đặt!");
+	                    return;
+	                }
+
+	                // ⭐ MỞ CHI TIẾT ĐẶT BÀN (Giao diện thanh toán tiền cọc)
+	                ChiTietDonDatBan_GUI dialog = new ChiTietDonDatBan_GUI(
+	                    (JFrame) getParent(), 
+	                    null,          
+	                    false,         
+	                    banDuocChon,  
+	                    tenKH, 
+	                    sdt
+	                );
+
+	                dialog.setVisible(true);
+
+	                // Đóng dialog đặt mới sau khi mở màn hình thanh toán
+	                dispose();
 	            }
 	        });
-	        btnGoiSP.addActionListener(e -> {
-	        	String tenKH = txtTenKhachHang.getText().trim();
-		        String sdt = txtSoDienThoai.getText().trim();
-	            
-	            // 2. Validate dữ liệu (Nên có)
-		        if (tenKH.isEmpty() || sdt.isEmpty()) {
-		            JOptionPane.showMessageDialog(DatBanMoi_Dialog.this, "Vui lòng nhập Tên khách hàng và Số điện thoại.", "Lỗi", JOptionPane.ERROR_MESSAGE);
-		            return;
-		        }
-	            GoiMon_GUI goiMonDialog = new GoiMon_GUI((JFrame) this.getParent(), this.maBanDuocChon, tenKH, sdt);
-	            goiMonDialog.setVisible(true);
-	            
-	            loadBanVaoGUI(null, "Tất cả", 0);
-	            dispose();
-	        });
+
 	    }
-	    
+	    private void handleXacNhanDat() {
+	        String tenKH = txtTenKhachHang.getText().trim();
+	        String sdt = txtSoDienThoai.getText().trim();
+
+	        // 1. Validate dữ liệu
+	        if (tenKH.isEmpty() || sdt.isEmpty()) {
+	            JOptionPane.showMessageDialog(this, "Vui lòng nhập đầy đủ Tên và SĐT khách hàng.", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
+	            return;
+	        }
+
+	        if (!sdt.matches("0\\d{9}")) {
+	            JOptionPane.showMessageDialog(this, "Số điện thoại không hợp lệ (phải là 10 số, bắt đầu bằng 0).", "Lỗi nhập liệu", JOptionPane.ERROR_MESSAGE);
+	            return;
+	        }
+
+	        try {
+	            // LẤY đối tượng Ban từ DB theo mã bàn đã truyền vào constructor
+	            Ban banDuocChon = ban_DAO.layBanTheoMa(this.maBanDuocChon);
+	            if (banDuocChon == null) {
+	                JOptionPane.showMessageDialog(this, "Không tìm thấy thông tin bàn: " + this.maBanDuocChon, "Lỗi", JOptionPane.ERROR_MESSAGE);
+	                return;
+	            }
+
+	            // MỞ ChiTietDonDatBan_GUI để nhân viên thanh toán đặt cọc ngay
+	            ChiTietDonDatBan_GUI chiTiet = new ChiTietDonDatBan_GUI(
+	                (JFrame) this.getParent(),
+	                new javax.swing.table.DefaultTableModel(new String[] {"Tên món","SL","Đơn giá","Thành tiền"}, 0), // model rỗng => thanh toán cọc
+	                false,   // isChuyenKhoan (mặc định false; nếu bạn muốn lấy lựa chọn từ form thì truyền giá trị đó)
+	                banDuocChon,
+	                tenKH,
+	                sdt
+	            );
+	            chiTiet.setVisible(true);
+
+	            // Sau khi đóng dialog chi tiết, có thể refresh giao diện chính (nếu cần)
+	            // Ví dụ: ((DatBan_GUI)SwingUtilities.getWindowAncestor(this)).loadBanVaoGUI(); 
+	            // nhưng chỉ gọi nếu bạn truyền/biết parent DatBan_GUI.
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	            JOptionPane.showMessageDialog(this, "Lỗi khi xử lý đặt bàn: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+	        }
+	    }
+
 	    // Hàm xử lý việc đặt bàn
 	    private boolean handleDatBanAction() {
 	        // 1. Lấy dữ liệu từ form
@@ -865,6 +1024,127 @@ private void handleTimKiemBanTheoMaDDB(String maDDB) {
 
 	    pDanhSachBan.revalidate();
 	    pDanhSachBan.repaint();
+	}
+	public class ThemBan_Dialog extends JDialog implements ActionListener {
+	    
+	    private DatBan_GUI parentGUI; // Tham chiếu đến giao diện chính để refresh
+	    private JTextField txtMaBan, txtViTri, txtSucChua;
+	    private JComboBox<String> cmbTrangThai;
+	    private JButton btnLuu, btnHuy;
+	    private Ban_DAO banDAO;
+
+	    public ThemBan_Dialog(JFrame parent, DatBan_GUI parentGUI) {
+	        super(parent, "Thêm Bàn Mới", true); // true cho modal dialog
+	        this.parentGUI = parentGUI;
+	        this.banDAO = new Ban_DAO();
+	        
+	        setLayout(new BorderLayout());
+	        setSize(400, 300);
+	        setLocationRelativeTo(parent);
+	        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+	        
+	        // Cấu hình giao diện
+	        setupForm();
+	    }
+
+	    private void setupForm() {
+	        JPanel pCenter = new JPanel(new GridLayout(4, 2, 10, 10));
+	        pCenter.setBorder(BorderFactory.createEmptyBorder(20, 20, 10, 20));
+	        
+	        // 1. Mã Bàn (Tự động tạo)
+	        txtMaBan = new JTextField(generateNewMaBan()); // ⭐ Phương thức giả định tạo mã
+	        txtMaBan.setEditable(false);
+	        pCenter.add(new JLabel("Mã Bàn:"));
+	        pCenter.add(txtMaBan);
+	        
+	        // 2. Vị Trí
+	        txtViTri = new JTextField();
+	        pCenter.add(new JLabel("Vị Trí:"));
+	        pCenter.add(txtViTri);
+
+	        // 3. Sức Chứa
+	        txtSucChua = new JTextField();
+	        pCenter.add(new JLabel("Sức Chứa (Số người):"));
+	        pCenter.add(txtSucChua);
+	        
+	        // 4. Trạng Thái (Thường là mặc định "Trống" khi thêm mới)
+	        cmbTrangThai = new JComboBox<>(new String[]{"Trống", "Đặt trước", "Đang phục vụ"}); // Chỉ cho phép 2 trạng thái khởi tạo
+	        cmbTrangThai.setSelectedItem("Trống");
+	        pCenter.add(new JLabel("Trạng Thái Mặc Định:"));
+	        pCenter.add(cmbTrangThai);
+	        
+	        add(pCenter, BorderLayout.CENTER);
+
+	        // Nút Lưu và Hủy
+	        JPanel pSouth = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
+	        btnLuu = new JButton("Lưu");
+	        btnHuy = new JButton("Hủy");
+
+	        btnLuu.addActionListener(this);
+	        btnHuy.addActionListener(this);
+	        btnLuu.setActionCommand("Luu");
+	        btnHuy.setActionCommand("Huy");
+	        
+	        pSouth.add(btnLuu);
+	        pSouth.add(btnHuy);
+	        add(pSouth, BorderLayout.SOUTH);
+	    }
+
+	    private String generateNewMaBan() {
+	        // ⭐ Cần thay thế bằng logic tạo mã bàn thực tế của bạn
+	        // Ví dụ: dựa trên số lượng bàn hiện có trong CSDL
+	        List<Ban> listBan = banDAO.getAllBan();
+	        int soLuongHienTai = listBan.size();
+	        return String.format("B%03d", soLuongHienTai + 1);
+	    }
+	    
+	    @Override
+	    public void actionPerformed(ActionEvent e) {
+	        if (e.getActionCommand().equals("Luu")) {
+	            themBanMoi();
+	        } else if (e.getActionCommand().equals("Huy")) {
+	            dispose(); // Đóng dialog
+	        }
+	    }
+
+	    private void themBanMoi() {
+	        String maBan = txtMaBan.getText().trim();
+	        String viTri = txtViTri.getText().trim();
+	        String trangThai = cmbTrangThai.getSelectedItem().toString();
+	        
+	        int sucChua;
+	        try {
+	            sucChua = Integer.parseInt(txtSucChua.getText().trim());
+	            if (sucChua <= 0) {
+	                 JOptionPane.showMessageDialog(this, "Sức chứa phải là số nguyên dương.", "Lỗi", JOptionPane.ERROR_MESSAGE);
+	                 return;
+	            }
+	        } catch (NumberFormatException ex) {
+	            JOptionPane.showMessageDialog(this, "Sức chứa không hợp lệ.", "Lỗi", JOptionPane.ERROR_MESSAGE);
+	            return;
+	        }
+
+	        if (maBan.isEmpty() || viTri.isEmpty()) {
+	             JOptionPane.showMessageDialog(this, "Mã bàn và Vị trí không được để trống.", "Lỗi", JOptionPane.ERROR_MESSAGE);
+	             return;
+	        }
+	        
+	        // 1. Tạo đối tượng Ban
+	        Ban banMoi = new Ban(maBan, viTri, sucChua, trangThai);
+
+	        // 2. Thêm vào CSDL
+	        if (banDAO.createBan(banMoi)) {
+	            JOptionPane.showMessageDialog(this, "Thêm bàn " + maBan + " thành công!");
+	            
+	            // ⭐ 3. CẬP NHẬT GIAO DIỆN CHÍNH
+	            // Gọi phương thức load lại danh sách bàn của DatBan_GUI
+	            parentGUI.loadBanVaoGUI(null, "Tất cả", 0); 
+	            
+	            dispose(); // Đóng dialog
+	        } else {
+	            JOptionPane.showMessageDialog(this, "Lỗi khi thêm bàn. Có thể Mã bàn đã tồn tại hoặc lỗi CSDL.", "Lỗi", JOptionPane.ERROR_MESSAGE);
+	        }
+	    }
 	}
 	class BanAnPanel extends JPanel {
 	    private Ban ban; 

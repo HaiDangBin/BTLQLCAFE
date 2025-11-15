@@ -3,25 +3,44 @@ package Entity;
 public class NhanVien {
     private String maNV;
     private String tenNV;
-    private String sDT;
-    private String maLoai;
+    private String sdt;
+    private String diaChi;
+    private String ngaySinh;
+    private ChucVu chucVu;
 
-    public NhanVien() {}
-
-    public NhanVien(String maNV, String tenNV, String sDT, String maLoai) {
+    public NhanVien(String maNV, String tenNV, String sdt, String diaChi, String ngaySinh, ChucVu chucVu) {
         this.maNV = maNV;
         this.tenNV = tenNV;
-        this.sDT = sDT;
-        this.maLoai = maLoai;
+        this.sdt = sdt;
+        this.diaChi = diaChi;
+        this.ngaySinh = ngaySinh;
+        this.chucVu = chucVu;
     }
+    
+
+    public NhanVien(String maNV) {
+		super();
+		this.maNV = maNV;
+	}
+
+
+	public NhanVien() {}
 
     public String getMaNV() { return maNV; }
-    public String getTenNV() { return tenNV; }
-    public String getSdt() { return sDT; }
-    public String getMaLoai() { return maLoai; }
-
     public void setMaNV(String maNV) { this.maNV = maNV; }
+
+    public String getTenNV() { return tenNV; }
     public void setTenNV(String tenNV) { this.tenNV = tenNV; }
-    public void setSdt(String sDT) { this.sDT = sDT; }
-    public void setMaLoai(String maLoai) { this.maLoai = maLoai; }
+
+    public String getSdt() { return sdt; }
+    public void setSdt(String sdt) { this.sdt = sdt; }
+
+    public String getDiaChi() { return diaChi; }
+    public void setDiaChi(String diaChi) { this.diaChi = diaChi; }
+
+    public String getNgaySinh() { return ngaySinh; }
+    public void setNgaySinh(String ngaySinh) { this.ngaySinh = ngaySinh; }
+
+    public ChucVu getChucVu() { return chucVu; }
+    public void setChucVu(ChucVu chucVu) { this.chucVu = chucVu; }
 }
