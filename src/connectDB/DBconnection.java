@@ -18,12 +18,12 @@ public class DBconnection {
     public static void connect() {
         try {
             // 🔧 Kết nối bằng SQL Authentication (user + password)
-            String url = "jdbc:sqlserver://localhost\\SQLEXPRESS:1433;"
-                       + "databaseName=CAFFE;"
-                       + "encrypt=true;"
-                       + "trustServerCertificate=true;";
+        	String url = "jdbc:sqlserver://localhost:1433;"
+        	           + "databaseName=CAFFE;"
+        	           + "encrypt=false;";
+
             String user = "sa";          
-            String password = "123456789";  
+            String password = "SaPassword@123";  
 
             // Nạp driver SQL Server
             Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");

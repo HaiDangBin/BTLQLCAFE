@@ -1,47 +1,35 @@
 package Entity;
 
 public class TaiKhoan {
+
+    private String maTK;
     private String tenDN;
     private String matKhau;
     private String vaiTro;
+    private boolean trangThai;
+    private String maNV;
 
-    // Constructor mặc định
+    // Thêm liên kết
+    private NhanVien nhanVien;
+    private ChucVu chucVu;
+
+    public TaiKhoan(String maTK, String tenDN, String matKhau, 
+                    String vaiTro, boolean trangThai, String maNV) {
+
+        this.maTK = maTK;
+        this.tenDN = tenDN;
+        this.matKhau = matKhau;
+        this.vaiTro = vaiTro;
+        this.trangThai = trangThai;
+        this.maNV = maNV;
+    }
+
     public TaiKhoan() {}
 
-    // Constructor đầy đủ — cái này cực kỳ quan trọng cho DAO
-    public TaiKhoan(String tenDN, String matKhau, String vaiTro) {
-        this.tenDN = tenDN;
-        this.matKhau = matKhau;
-        this.vaiTro = vaiTro;
-    }
+    // setter để gán NV + ChucVu
+    public void setNhanVien(NhanVien nv) { this.nhanVien = nv; }
+    public void setChucVu(ChucVu cv) { this.chucVu = cv; }
 
-    // Getter và Setter
-    public String getTenDN() {
-        return tenDN;
-    }
-
-    public void setTenDN(String tenDN) {
-        this.tenDN = tenDN;
-    }
-
-    public String getMatKhau() {
-        return matKhau;
-    }
-
-    public void setMatKhau(String matKhau) {
-        this.matKhau = matKhau;
-    }
-
-    public String getVaiTro() {
-        return vaiTro;
-    }
-
-    public void setVaiTro(String vaiTro) {
-        this.vaiTro = vaiTro;
-    }
-
-    @Override
-    public String toString() {
-        return "TaiKhoan [tenDN=" + tenDN + ", vaiTro=" + vaiTro + "]";
-    }
+    public NhanVien getNhanVien() { return nhanVien; }
+    public ChucVu getChucVu() { return chucVu; }
 }

@@ -1,38 +1,39 @@
 package Entity;
 
-import java.sql.Date;
-
 public class HoaDon {
     private String maHD;
-    private Date ngayLap;
     private String maNV;
+    private String maKM;
+    private String maDatBan;
     private String maKH;
-    private double tongTien;
+    private String ngayLap;
 
     public HoaDon() {}
 
-    public HoaDon(String maHD, Date ngayLap, String maNV, String maKH, double tongTien) {
+    public HoaDon(String maHD, String maNV, String maKH, String maKM, String maDatBan, String ngayLap) {
         this.maHD = maHD;
-        this.ngayLap = ngayLap;
         this.maNV = maNV;
+        this.maKM = maKM;
+        this.maDatBan = maDatBan;
         this.maKH = maKH;
-        this.tongTien = tongTien;
+        this.ngayLap = ngayLap;
     }
 
     public String getMaHD() { return maHD; }
-    public Date getNgayLap() { return ngayLap; }
-    public String getMaNV() { return maNV; }
-    public String getMaKH() { return maKH; }
-    public double getTongTien() { return tongTien; }
-
     public void setMaHD(String maHD) { this.maHD = maHD; }
-    public void setNgayLap(Date ngayLap) { this.ngayLap = ngayLap; }
-    public void setMaNV(String maNV) { this.maNV = maNV; }
-    public void setMaKH(String maKH) { this.maKH = maKH; }
-    public void setTongTien(double tongTien) { this.tongTien = tongTien; }
 
-    @Override
-    public String toString() {
-        return maHD + " - " + ngayLap + " - " + tongTien;
-    }
+    public String getMaNV() { return maNV; }
+    public void setMaNV(String maNV) { this.maNV = maNV; }
+
+    public String getMaKM() { return maKM; }
+    public void setMaKM(String maKM) { this.maKM = maKM; }
+
+    public String getMaDatBan() { return maDatBan; }
+    public void setMaDatBan(String maDatBan) { this.maDatBan = maDatBan; }
+
+    public String getMaKH() { return maKH; }
+    public void setMaKH(String maKH) { this.maKH = maKH; }
+
+    public String getNgayLap() { return ngayLap; }
+    public void setNgayLap(String ngayLap) { this.ngayLap = ngayLap; }
 }

@@ -10,6 +10,7 @@
 	<classpathentry kind="src" path="lib"/>
 	<classpathentry kind="src" path="images"/>
 	<classpathentry kind="lib" path="lib/sqljdbc42.jar"/>
-	<classpathentry kind="lib" path="C:/Users/DANG/Downloads/jcalendar-1.4/lib/jcalendar-1.4.jar"/>
+	<classpathentry kind="lib" path="/Users/xsd/BTLQLCAFE/lib/sqljdbc42.jar"/>
+	<classpathentry kind="lib" path="/Users/xsd/Documents/KHMT_IUH/java_HSK/BTL/BTLBanHangCF/QuanCafe/lib/jcalendar-1.4.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
