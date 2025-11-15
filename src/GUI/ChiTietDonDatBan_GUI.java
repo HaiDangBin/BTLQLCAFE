@@ -45,12 +45,16 @@ public class ChiTietDonDatBan_GUI extends JDialog {
     private Ban banHienTai;
     private boolean isChiThanhToanTienCoc;
     private String tenKHTuForm;
+    private String ngayStr;
+    private String gioStr;
+    private String phutStr;
     private String sdtTuForm;
     private KhachHang_DAO khachHangDAO = new KhachHang_DAO();
     private HoaDon_DAO hdDAO = new HoaDon_DAO();
     private String maHoaDonHienTai;
 	private JLabel lblTienCoc;
 	private ChucVu_DAO chucVuDAO;
+	
 
     public ChiTietDonDatBan_GUI(JFrame parent, DefaultTableModel modelMonAn, boolean isChuyenKhoan, Ban ban, String tenKH, String sdt) {
         super(parent, "Chi tiết đơn đặt bàn", true);
@@ -61,12 +65,11 @@ public class ChiTietDonDatBan_GUI extends JDialog {
         this.maDDBHienTai = null;
         this.banHienTai = ban;
         this.khachHangDAO = new KhachHang_DAO();
-        this.isChiThanhToanTienCoc = true; // Luôn là thanh toán tiền cọc
+        this.isChiThanhToanTienCoc = true; 
         this.tenKHTuForm = tenKH != null ? tenKH : "Khách lẻ";
         this.sdtTuForm = sdt != null ? sdt : "";
-        this.chucVuDAO = new ChucVu_DAO(); // KHẮC PHỤC LỖI NPE
-        
-
+        this.chucVuDAO = new ChucVu_DAO();
+    
         setSize(350, 400);
         setLocationRelativeTo(parent);
         setLayout(new BorderLayout(0, 0));
@@ -84,17 +87,13 @@ public class ChiTietDonDatBan_GUI extends JDialog {
         pnlHeader.add(lblTenNH); pnlHeader.add(lblDiaChi); pnlHeader.add(lblSDT); pnlHeader.add(Box.createVerticalStrut(1)); pnlHeader.add(lblHD);
         add(pnlHeader, BorderLayout.NORTH);
 
-        // Tính tiền cọc (loại bỏ phần món ăn)
+        // Tính tiền cọc
         double tienCocMotNguoi = 10000;
         this.rawTienDatCoc = this.banHienTai.getSucChua() * tienCocMotNguoi;
         this.tongTienThuc = this.rawTienDatCoc;
         this.vatThuc = 0; // Không VAT cho cọc
         this.thanhTienThuc = this.rawTienDatCoc;
 
-  
-        
-
-        // Footer with totals and payment
         JPanel pnlFooter = new JPanel(new GridLayout(7, 2, 5, 5));
         pnlFooter.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
         lblTongTien = new JLabel(df.format(tongTienThuc), SwingConstants.RIGHT);
@@ -123,25 +122,22 @@ public class ChiTietDonDatBan_GUI extends JDialog {
 
         // Buttons
         JPanel pnlButtons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        pnlButtons.setBorder(BorderFactory.createEmptyBorder(0, 20, 10, 20)); // Thêm padding
+        pnlButtons.setBorder(BorderFactory.createEmptyBorder(0, 20, 10, 20)); 
         btnIn = new RoundedButton("IN", new Color(0, 102, 102));
         pnlButtons.add(btnIn);
         
-        // ⭐ BẮT ĐẦU PHẦN KHẮC PHỤC LỖI HIỂN THỊ ⭐
-        // 1. Tạo Container chứa cả pnlFooter và pnlButtons
+
         JPanel pnlBottom = new JPanel();
-        // 2. Thiết lập BoxLayout để xếp chồng theo chiều dọc (Footer rồi đến Buttons)
         pnlBottom.setLayout(new BoxLayout(pnlBottom, BoxLayout.Y_AXIS)); 
         pnlBottom.setBackground(Color.WHITE);
         
-        pnlBottom.add(pnlFooter); // Thêm Panel thông tin thanh toán
-        pnlBottom.add(pnlButtons); // Thêm Panel nút bấm
+        pnlBottom.add(pnlFooter); 
+        pnlBottom.add(pnlButtons); 
         
-        // 3. Chỉ gọi add(..., BorderLayout.SOUTH) MỘT LẦN DUY NHẤT cho container chung
-        add(pnlBottom, BorderLayout.SOUTH);
-        // ⭐ KẾT THÚC PHẦN KHẮC PHỤC LỖI HIỂN THỊ ⭐
 
-        // ⭐ THÊM ACTION CHO NÚT IN: Nhập tiền khách trả, tính thừa, in, lưu DB
+        add(pnlBottom, BorderLayout.SOUTH);
+
+        // ⭐ THÊM ACTION CHO NÚT
         btnIn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -154,19 +150,45 @@ public class ChiTietDonDatBan_GUI extends JDialog {
                         JOptionPane.showMessageDialog(ChiTietDonDatBan_GUI.this, "Tiền khách trả không đủ!", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
                         return;
                     }
-                 // Lưu vào DB (nếu tiền cọc, tạo DDB mới hoặc update)
                     saveDonDatBan();
+                    
+                    // ⭐ BƯỚC 1: KIỂM TRA MÃ ĐƠN ĐẶT BÀN HIỆN TẠI
+                    if (maDDBHienTai == null || maDDBHienTai.isEmpty()) {
+                        JOptionPane.showMessageDialog(ChiTietDonDatBan_GUI.this, 
+                            "Lỗi hệ thống: Không tìm thấy Mã đơn đặt bàn. Vui lòng kiểm tra lại thao tác Đặt bàn.", 
+                            "Lỗi dữ liệu", JOptionPane.ERROR_MESSAGE);
+                        return; 
+                    }
 
-                    // In hóa đơn (sửa để không dùng bảng)
-                    showHoaDonInDialog(df.format(rawTienDatCoc), df.format(vatThuc), df.format(thanhTienThuc), df.format(khachTra), df.format(tienThua), tenKHTuForm);
-
-                     
+                    DonDatBan donDatBanHienTai = ddbDAO.getDonDatBanByMa(maDDBHienTai);
+                    
+                    // ⭐ BƯỚC 3: TẠO CHUỖI THỜI GIAN ĐẶT TỪ DB
+                    String thoiGianDatTrenHoaDon;
+                    if (donDatBanHienTai != null && donDatBanHienTai.getNgayDat() != null) {
+ 
+                        java.text.SimpleDateFormat formatter = new java.text.SimpleDateFormat("dd-MM-yyyy");
+                        java.util.Date ngayGioDat = new java.util.Date(donDatBanHienTai.getNgayDat().getTime()); 
+                        
+                        thoiGianDatTrenHoaDon = formatter.format(ngayGioDat);
+                    } else {
+                        thoiGianDatTrenHoaDon = "Lỗi dữ liệu thời gian đặt.";
+                    }                 
+                    // In hóa đơn 
+                    showHoaDonInDialog(
+                        df.format(rawTienDatCoc), 
+                        df.format(vatThuc), 
+                        df.format(thanhTienThuc), 
+                        df.format(khachTra), 
+                        df.format(tienThua), 
+                        tenKHTuForm,
+                        thoiGianDatTrenHoaDon 
+                    );
 
                     // Update trạng thái bàn
                     banDAO.updateTrangThaiBan(banHienTai.getMaBan(), "Đã đặt");
 
                     JOptionPane.showMessageDialog(ChiTietDonDatBan_GUI.this, "Hóa đơn đã được in và lưu thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
-                    dispose(); // Đóng dialog
+                    dispose(); 
 
                 } catch (NumberFormatException ex) {
                     JOptionPane.showMessageDialog(ChiTietDonDatBan_GUI.this, "Vui lòng nhập số tiền hợp lệ!", "Lỗi", JOptionPane.ERROR_MESSAGE);
@@ -187,19 +209,18 @@ public class ChiTietDonDatBan_GUI extends JDialog {
                     double tienThua = khachTra - thanhTienThuc;
                     lblTienThua.setText(df.format(tienThua));
                 } catch (NumberFormatException ex) {
-                    // Bỏ qua nếu người dùng đang nhập dở
                 }
             }
         });
     }
 
-    private void showHoaDonInDialog(String tienCoc, String vat, String thanhTien, String tienKhach, String tienThua, String tenKhachHang) {
+    private void showHoaDonInDialog(String tienCoc, String vat, String thanhTien, String tienKhach, String tienThua, String tenKhachHang, String thoigiandat) {
         JDialog dialog = new JDialog(this, "In hóa đơn", true);
         dialog.setSize(350, 400);
         dialog.setLocationRelativeTo(this);
         dialog.setLayout(new BorderLayout(0, 0));
 
-        JPanel header = new JPanel(new GridLayout(6, 1));
+        JPanel header = new JPanel(new GridLayout(7, 1));
         JLabel title = new JLabel("Quán Caffe CornCorn", SwingConstants.CENTER);
         title.setFont(new Font("Segoe UI", Font.BOLD, 19));
         header.add(title);
@@ -210,8 +231,10 @@ public class ChiTietDonDatBan_GUI extends JDialog {
         JLabel hd = new JLabel("HÓA ĐƠN ĐẶT BÀN: " + (maDDBHienTai!=null?maDDBHienTai:""), SwingConstants.CENTER);
         hd.setFont(new Font("Segoe UI", Font.BOLD, 19));
         JLabel kh = new JLabel("Khách hàng: "+ tenKhachHang, SwingConstants.LEFT);
-        kh.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        header.add(dChi); header.add(sdt); header.add(Box.createVerticalStrut(1)); header.add(hd); header.add(kh);
+        kh.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        JLabel tg = new JLabel("Thời gian đặt: " + thoigiandat, SwingConstants.LEFT);
+        tg.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        header.add(dChi); header.add(sdt); header.add(Box.createVerticalStrut(1)); header.add(hd); header.add(kh); header.add(tg);
         dialog.add(header, BorderLayout.NORTH);
 
         
@@ -236,7 +259,7 @@ public class ChiTietDonDatBan_GUI extends JDialog {
     private void saveDonDatBan() {
         try {
             // 1. Tạo mã đơn đặt bàn mới
-        	String maDDBMoi = ddbDAO.phatSinhMaDatBan(); // Cần có hàm này trong DAO
+        	String maDDBMoi = ddbDAO.phatSinhMaDatBan(); 
 
             // 2. Tìm hoặc tạo khách hàng
             KhachHang kh = null;
@@ -245,7 +268,7 @@ public class ChiTietDonDatBan_GUI extends JDialog {
                 if (kh == null) {
                     String maKHMoi = khachHangDAO.phatSinhMaKH();
                     kh = new KhachHang(maKHMoi, tenKHTuForm, sdtTuForm);
-                    khachHangDAO.createKhachHang(kh); // Lưu KH mới
+                    khachHangDAO.createKhachHang(kh); 
                 }
             } else {
                 kh = new KhachHang("KH000", "Khách lẻ", "");
@@ -257,7 +280,7 @@ public class ChiTietDonDatBan_GUI extends JDialog {
             // 4. Tạo đối tượng DonDatBan
             java.sql.Date sqlNgayDat = java.sql.Date.valueOf(LocalDate.now());
             int soLuongKhach = banHienTai.getSucChua();
-            String trangThai = "Đã cọc"; // hoặc "Đã đặt"
+            String trangThai = "Đã cọc"; 
 
             DonDatBan newDDB = new DonDatBan(
                 maDDBMoi,
@@ -267,8 +290,6 @@ public class ChiTietDonDatBan_GUI extends JDialog {
                 kh,
                 nv
             );
-
-            // BẮT BUỘC: GÁN MÃ BÀN
             newDDB.setBan(banHienTai);
 
             // 5. Lưu vào CSDL
@@ -298,7 +319,6 @@ public class ChiTietDonDatBan_GUI extends JDialog {
         this.maDDBHienTai = maDDB;
     }
 
-    // Minimal placeholder RoundedButton
     class RoundedButton extends JButton {
         public RoundedButton(String text, Color bg) { super(text); setBackground(bg); setForeground(Color.WHITE); }
         

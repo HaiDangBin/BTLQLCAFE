@@ -61,7 +61,6 @@ public class DonDatBan_GUI extends JPanel implements ActionListener{
     private RoundedButton btnTimHD;
     private RoundedButton btnLamMoi;
     private RoundedButton btnXem;
-    // ✅ Thêm JComboBox vào thuộc tính lớp
     private JComboBox<String> comboBoxThoiGian;
 	private RoundedButton btnThanhToan;
 	private DonDatBan_DAO ddbDAO; 
@@ -69,7 +68,7 @@ public class DonDatBan_GUI extends JPanel implements ActionListener{
     public DonDatBan_GUI() {
         setLayout(new BorderLayout());
 
-        // ======= HEADER (Giữ nguyên) =======
+        // ======= HEADER =======
         JPanel pNorth = new JPanel();
         pNorth.setBackground(new Color(0,153,76));
         JLabel lbltitle = new JLabel("QUẢN LÝ ĐƠN ĐẶT BÀN", SwingConstants.CENTER);
@@ -78,7 +77,7 @@ public class DonDatBan_GUI extends JPanel implements ActionListener{
         pNorth.add(lbltitle);
         add(pNorth, BorderLayout.NORTH);
 
-        // ======= CENTER (Giữ nguyên) =======
+        // ======= CENTER =======
         add(pCen = new JPanel(new BorderLayout()));
         pCen.setBackground(Color.WHITE);
         pCen.add(bx1 = new Box(BoxLayout.Y_AXIS), BorderLayout.NORTH);
@@ -99,8 +98,7 @@ public class DonDatBan_GUI extends JPanel implements ActionListener{
         thoiGian.setFont(new Font("Segoe UI", Font.BOLD, 16));
         thoiGian.setPreferredSize(new Dimension(130,30));
 
-        String [] ngay = {"Tất cả", "Hôm nay", "Hôm qua"}; // ✅ Thêm 'Tất cả' để hiển thị không lọc
-        // ✅ Khởi tạo thuộc tính lớp
+        String [] ngay = {"Tất cả", "Hôm nay", "Hôm qua"}; 
         comboBoxThoiGian = new JComboBox<>(ngay);
         comboBoxThoiGian.setSelectedIndex(0);
         comboBoxThoiGian.setPreferredSize(new Dimension(150,30));
@@ -109,7 +107,6 @@ public class DonDatBan_GUI extends JPanel implements ActionListener{
         ngayLap.setPreferredSize(new Dimension(130,30));
         ngayLap.setFont(new Font("Segoe UI", Font.BOLD, 16));
 
-        // ✅ Khởi tạo thuộc tính lớp
         dateChooser = new JDateChooser(); 
         dateChooser.setDate(null); 
         dateChooser.setDateFormatString("dd/MM/yyyy");
@@ -121,12 +118,11 @@ public class DonDatBan_GUI extends JPanel implements ActionListener{
         pnA.add(Box.createHorizontalStrut(30));
         pnA.add(sdt); pnA.add(txtSDT);
         pnA.add(Box.createHorizontalStrut(30));
-        pnA.add(thoiGian); pnA.add(comboBoxThoiGian); // ✅ Sử dụng thuộc tính lớp
+        pnA.add(thoiGian); pnA.add(comboBoxThoiGian); 
         pnA.add(Box.createHorizontalStrut(30));
-        pnA.add(ngayLap); pnA.add(dateChooser);       // ✅ Sử dụng thuộc tính lớp
+        pnA.add(ngayLap); pnA.add(dateChooser);       
         bx1.add(pnA);
 
-        // --- Hàng 2 (Giữ nguyên) ---
         pnB = new Box(BoxLayout.X_AXIS);
         JLabel maHD = new JLabel("Mã đơn đặt bàn:");
         maHD.setFont(new Font("Segoe UI", Font.BOLD, 16));
@@ -150,19 +146,16 @@ public class DonDatBan_GUI extends JPanel implements ActionListener{
         pnB.add(btnThanhToan); btnThanhToan.setMaximumSize(btnSize);
         bx1.add(pnB);
 
-        // ======= BẢNG HÓA ĐƠN (Giữ nguyên) =======
+        // ======= BẢNG HÓA ĐƠN  =======
         model = new DefaultTableModel(new Object[]{
             "Mã đơn đặt bàn","Tên khách hàng","Số lượng khách", "Ngày lập",
             "Nhân viên", "Trạng thái"
-        }, 0) {
-        	/**
-			 * 
-			 */
+        }, 0) {        	
 			private static final long serialVersionUID = 1L;
 
 			@Override
             public boolean isCellEditable(int row, int column) {
-                return false; // **QUAN TRỌNG: Trả về false để vô hiệu hóa chỉnh sửa**
+                return false; 
             }
         };
 
@@ -182,10 +175,6 @@ public class DonDatBan_GUI extends JPanel implements ActionListener{
         wrap.add(pCen, BorderLayout.CENTER);
         add(wrap, BorderLayout.CENTER);
 
-        // ======= NÚT HÀNH ĐỘNG (Cập nhật) =======
-      
-        // ======= KHỞI TẠO (Giữ nguyên) =======
-     
         setVisible(true);
         btnTimHD.addActionListener(this);
         btnLamMoi.addActionListener(this);
@@ -193,13 +182,10 @@ public class DonDatBan_GUI extends JPanel implements ActionListener{
         btnThanhToan.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // ⭐ FIX: Gọi hàm xử lý Thanh toán để mở ChiTietDonDatBan_GUI
                 handleThanhToanTuBang(); 
             }
         });
-        // Load dữ liệu ban đầu
-        loadDonDatBanToTable();
-        
+        loadDonDatBanToTable();       
     }
     @Override
     public void actionPerformed(ActionEvent e) {
@@ -213,18 +199,14 @@ public class DonDatBan_GUI extends JPanel implements ActionListener{
         }
     }
    
-
-    // ✅ Phương thức xử lý nút Làm mới
     private void handleLamMoi() {
         txtMaHD.setText("");
         txtSDT.setText("");
         txtTenKH.setText("");
         dateChooser.setDate(null);
         comboBoxThoiGian.setSelectedIndex(0);
-        loadDonDatBanToTable(); // Tải lại toàn bộ danh sách
+        loadDonDatBanToTable(); 
     }
-
-    // ✅ Phương thức xử lý nút Xem (cần logic chi tiết hơn)
     private void handleXemChiTiet() {
         int row = table.getSelectedRow();
         if (row != -1) {
@@ -237,8 +219,6 @@ public class DonDatBan_GUI extends JPanel implements ActionListener{
     
     private void loadDonDatBanToTable() {
         model.setRowCount(0); 
-        
-        // Gọi DAO để lấy danh sách đơn đặt bàn chi tiết (đã JOIN)
         List<Object[]> danhSachDonDatBan = DonDatBanDAO.getAllDonDatBanDetails(); 
         
         for (Object[] rowData : danhSachDonDatBan) {
@@ -251,23 +231,16 @@ public class DonDatBan_GUI extends JPanel implements ActionListener{
         String sdt = txtSDT.getText().trim();
         Date utilNgayLap = dateChooser.getDate();
         String thoiGian = (String) comboBoxThoiGian.getSelectedItem();
-
-        // Chuyển java.util.Date sang java.sql.Date để truyền vào DAO
         java.sql.Date sqlNgayLap = null;
         if (utilNgayLap != null) {
             sqlNgayLap = new java.sql.Date(utilNgayLap.getTime());
         }
-
-        // Kiểm tra nếu tất cả các trường rỗng, thì load lại tất cả
         if (maDDB.isEmpty() && tenKH.isEmpty() && sdt.isEmpty() && utilNgayLap == null && thoiGian.equals("Tất cả")) {
             loadDonDatBanToTable();
             return;
         }
-        
-        // 1. Gọi DAO để tìm kiếm
         List<Object[]> ketQuaTimKiem = DonDatBanDAO.findDonDatBan(maDDB, tenKH, sdt, sqlNgayLap, thoiGian);
-        
-        // 2. Cập nhật bảng
+
         model.setRowCount(0);
         for (Object[] rowData : ketQuaTimKiem) {
             model.addRow(rowData);
@@ -279,10 +252,6 @@ public class DonDatBan_GUI extends JPanel implements ActionListener{
             JOptionPane.showMessageDialog(this, "Tìm thấy " + ketQuaTimKiem.size() + " đơn đặt bàn.", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
         }
     }
- // Trong DonDatBan_GUI.java
-
- // Trong DonDatBan_GUI.java
-
     private void handleThanhToanTuBang() {
         int row = table.getSelectedRow();
         if (row == -1) {
@@ -291,44 +260,32 @@ public class DonDatBan_GUI extends JPanel implements ActionListener{
         }
         
         String maDDB = (String) model.getValueAt(row, 0);
-        String trangThai = (String) model.getValueAt(row, 5); // Giả định trạng thái ở cột 5
+        String trangThai = (String) model.getValueAt(row, 5); 
         
         if (trangThai.equals("Đã thanh toán")) {
             JOptionPane.showMessageDialog(this, "Đơn đặt bàn này đã được thanh toán.", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
             return;
         }
-
-        // 1. Lấy đối tượng DonDatBan
-        // DonDatBanDAO là ddbDAO trong các hướng dẫn trước
         DonDatBan ddb = DonDatBanDAO.getDonDatBanByMa(maDDB); 
-        
-        // 2. Kiểm tra DDB
         if (ddb == null || ddb.getMaDatBan() == null) {
             JOptionPane.showMessageDialog(this, "Không tìm thấy thông tin đơn đặt bàn hoặc bàn liên quan.", "Lỗi", JOptionPane.ERROR_MESSAGE);
             return;
         }
-        
-        // 3. Lấy thông tin KH và Bàn
         String tenKH = "Khách lẻ";
         String sdt = "";
         Ban banHienTai = null;
 
         try {
-            // Cần KhachHang_DAO đã khai báo ở đầu class (giả định tồn tại)
             KhachHang_DAO khachHangDAO = new KhachHang_DAO();
             if (ddb.getMaKH() != null) {
-                // Giả định getKhachHangByMa tồn tại
                 KhachHang kh = khachHangDAO.getKhachHangByMa(ddb.getMaKH().getMaKH()); 
                 if (kh != null) {
                     tenKH = kh.getTenKH();
                     sdt = kh.getsDT();
                 }
             }
-            
-            // Cần Ban_DAO đã khai báo ở đầu class (giả định tồn tại)
             Ban_DAO banDAO = new Ban_DAO();
             String maBanDDB = ddb.getMaDatBan();
-            // ⭐ Giả định DonDatBan có phương thức getMaBan() trả về đối tượng Ban có getMaBan()
             banHienTai = banDAO.getBanByMaDDB(maBanDDB);
         } catch (Exception e) {
             System.err.println("Lỗi khi lấy thông tin Khách hàng hoặc Bàn: " + e.getMessage());
@@ -340,30 +297,22 @@ public class DonDatBan_GUI extends JPanel implements ActionListener{
             JOptionPane.showMessageDialog(this, "Không tìm thấy thông tin bàn liên quan.", "Lỗi", JOptionPane.ERROR_MESSAGE);
             return;
         }
-        
-        // 4. Lấy danh sách món ăn (Giả định DonDatBanDAO có getMonAnByMaDDB)
         DefaultTableModel modelMonAn = DonDatBanDAO.getMonAnByMaDDB(maDDB); 
         
         if (modelMonAn == null) {
-             // Tạo model rỗng nếu không có món ăn (ví dụ: chỉ thanh toán tiền cọc)
              modelMonAn = new DefaultTableModel(new String[]{"Tên món", "Mã món", "SL", "Đơn giá", "Thành tiền"}, 0);
         }
-
-        // 5. Mở ChiTietDonDatBan_GUI (THAY THẾ GoiMon_GUI)
         ChiTietDonDatBan_GUI chiTiet = new ChiTietDonDatBan_GUI(
             (JFrame) SwingUtilities.getWindowAncestor(this), 
             modelMonAn, 
-            false, // isChuyenKhoan = false (Tiền mặt mặc định)
+            false, 
             banHienTai,
             tenKH,
-            sdt // Truyền tenKH và sdt
+            sdt 
         );
-        // ⭐ Truyền mã đơn đặt bàn hiện tại để nó không tự sinh mã mới khi thanh toán
         chiTiet.setMaDDBHienTai(maDDB); 
         chiTiet.setVisible(true);
-        
-        // Cập nhật lại giao diện sau khi dialog thanh toán đóng
-        loadDonDatBanToTable(); // ⭐ FIX: Gọi hàm tải lại dữ liệu bảng DDB
+        loadDonDatBanToTable(); 
     }
     
     class RoundedButton extends JButton {

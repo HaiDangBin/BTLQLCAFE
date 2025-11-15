@@ -27,19 +27,15 @@ public class DonDatBan_DAO {
 	
 	
 	public DonDatBan_DAO() {
-        // Khắc phục lỗi ChucVu_DAO (bạn đã làm)
         this.chucVuDAO = new ChucVu_DAO(); 
-        
-        // ⭐ KHẮC PHỤC LỖI HIỆN TẠI (KhachHang_DAO) ⭐
         this.khachHangDAO = new KhachHang_DAO(); 
     }
+	
 	public List<Object[]> getAllDonDatBanDetails() {
         List<Object[]> danhSachDatBan = new ArrayList<>();
         Connection con = null; 
         PreparedStatement stmt = null;
         ResultSet rs = null;
-
-        // Cập nhật SQL: Chọn các cột mới: soLuongKhach, trangThai
         String sql = "SELECT " +
                      "    DDB.maDatBan, KH.tenKH, DDB.soLuongKhach, DDB.ngayDat, NV.tenNV, DDB.trangThai " +
                      "FROM " +
@@ -48,24 +44,22 @@ public class DonDatBan_DAO {
                      "    KhachHang KH ON DDB.maKH = KH.maKH " +
                      "JOIN " +
                      "    NhanVien NV ON DDB.maNV = NV.maNV";
-                     // Bỏ các JOIN không cần thiết (KM, Ban) vì đã loại bỏ khỏi bảng GUI
-
         try {
             con = DBconnection.getConnection(); 
-            if (con == null) return danhSachDatBan; // Thoát nếu không kết nối được
+            if (con == null) return danhSachDatBan; 
             
             stmt = con.prepareStatement(sql);
             rs = stmt.executeQuery();
 
             while (rs.next()) {
-                // Đảm bảo thứ tự cột KHỚP CHÍNH XÁC với DefaultTableModel mới trong GUI
+
                 Object[] rowData = {
-                    rs.getString("maDatBan"),    // 1. Mã đơn đặt bàn
-                    rs.getString("tenKH"),       // 2. Tên khách hàng
-                    rs.getInt("soLuongKhach"),   // 3. Số lượng khách (Lấy từ DDB)
-                    rs.getDate("ngayDat").toString(), // 4. Ngày lập
-                    rs.getString("tenNV"),       // 5. Nhân viên
-                    rs.getString("trangThai")    // 6. Trạng thái (Lấy từ DDB)
+                    rs.getString("maDatBan"),   
+                    rs.getString("tenKH"),      
+                    rs.getInt("soLuongKhach"),   
+                    rs.getDate("ngayDat").toString(), 
+                    rs.getString("tenNV"),       
+                    rs.getString("trangThai")    
                 };
                 danhSachDatBan.add(rowData);
             }
@@ -73,7 +67,6 @@ public class DonDatBan_DAO {
             e.printStackTrace();
             System.err.println("Lỗi SQL khi tải đơn đặt bàn: " + e.getMessage());
         } finally {
-            // Đóng tài nguyên an toàn
             try {
                 if (rs != null) rs.close();
                 if (stmt != null) stmt.close();
@@ -90,7 +83,6 @@ public class DonDatBan_DAO {
         PreparedStatement stmt = null;
         ResultSet rs = null;
 
-        // Bắt đầu truy vấn cơ bản (giống như getAll)
         String sql = "SELECT " +
                      "    DDB.maDatBan, KH.tenKH, DDB.soLuongKhach, DDB.ngayDat, NV.tenNV, DDB.trangThai " +
                      "FROM " +
@@ -99,9 +91,8 @@ public class DonDatBan_DAO {
                      "    KhachHang KH ON DDB.maKH = KH.maKH " +
                      "JOIN " +
                      "    NhanVien NV ON DDB.maNV = NV.maNV " +
-                     "WHERE 1=1"; // Điều kiện ban đầu luôn đúng
+                     "WHERE 1=1"; 
 
-        // 1. Xây dựng điều kiện tìm kiếm động
         if (!maDDB.isEmpty()) {
             sql += " AND DDB.maDatBan LIKE ?";
         }
@@ -112,7 +103,6 @@ public class DonDatBan_DAO {
             sql += " AND KH.sDT LIKE ?";
         }
 
-        // 2. Xử lý lọc theo Ngày/Thời gian
         if (ngayTimKiem != null) {
             sql += " AND DDB.ngayDat = ?";
         } else {
@@ -124,7 +114,6 @@ public class DonDatBan_DAO {
                 sql += " AND DDB.ngayDat = ?";
                 ngayTimKiem = Date.valueOf(today.minusDays(1));
             }
-            // Nếu là "Tất cả", không thêm điều kiện ngày tháng
         }
 
         try {
@@ -132,9 +121,8 @@ public class DonDatBan_DAO {
             if (con == null) return danhSachDatBan;
             
             stmt = con.prepareStatement(sql);
-            int i = 1; // Chỉ số tham số
+            int i = 1;
 
-            // 3. Gán giá trị cho các tham số
             if (!maDDB.isEmpty()) {
                 stmt.setString(i++, "%" + maDDB + "%");
             }
@@ -145,14 +133,12 @@ public class DonDatBan_DAO {
                 stmt.setString(i++, "%" + sdt + "%");
             }
             
-            // Xử lý tham số ngày (Nếu có)
             if (ngayTimKiem != null) {
                 stmt.setDate(i++, ngayTimKiem);
             }
 
             rs = stmt.executeQuery();
 
-            // 4. Đọc dữ liệu (giống như getAll)
             while (rs.next()) {
                 Object[] rowData = {
                     rs.getString("maDatBan"),    
@@ -185,17 +171,10 @@ public class DonDatBan_DAO {
 	    PreparedStatement stmt = null;
 	    ResultSet rs = null;
 	    
-	    // Thử tối đa 10 lần để tránh lặp vô hạn nếu CSDL đầy mã
 	    for (int i = 0; i < 10; i++) {
-	        // Tạo 3 chữ số ngẫu nhiên (từ 000 đến 999)
 	        int randomNumber = random.nextInt(1000); 
-	        // Định dạng thành chuỗi 3 chữ số, ví dụ: 5 -> "005", 123 -> "123"
 	        String randomSuffix = String.format("%03d", randomNumber); 
-	        
-	        // Gộp lại: DDB + 3 chữ số ngẫu nhiên
 	        newMaDDB = "DDB" + randomSuffix; 
-	        
-	        // Kiểm tra xem mã này đã tồn tại trong CSDL chưa
 	        String sql = "SELECT COUNT(*) FROM DonDatBan WHERE maDatBan = ?";
 	        try {
 	            stmt = con.prepareStatement(sql);
@@ -203,14 +182,11 @@ public class DonDatBan_DAO {
 	            rs = stmt.executeQuery();
 	            
 	            if (rs.next() && rs.getInt(1) == 0) {
-	                // Nếu COUNT là 0, mã chưa tồn tại, trả về mã này
 	                return newMaDDB; 
 	            }
 	        } catch (Exception e) {
 	            e.printStackTrace();
-	            // Nếu có lỗi, vẫn cố gắng thử lại lần tiếp theo
 	        } finally {
-	             // Đóng ResultSet và Statement ở đây
 	             try {
 	                 if (rs != null) rs.close();
 	                 if (stmt != null) stmt.close();
@@ -219,8 +195,7 @@ public class DonDatBan_DAO {
 	             }
 	        }
 	    }
-	    
-	    // Nếu sau 10 lần thử vẫn không tạo được mã duy nhất, trả về mã lỗi hoặc throw exception
+
 	    return "DDB_ERROR"; 
 	}
 	public boolean createDonDatBan(DonDatBan ddb) {
@@ -240,7 +215,6 @@ public class DonDatBan_DAO {
 	        ps.setString(5, ddb.getMaKH().getMaKH());
 	        ps.setString(6, ddb.getMaNV().getMaNV());
 
-	        // LẤY MÃ BÀN TỪ ĐỐI TƯỢNG BAN
 	        if (ddb.getBan() != null) {
 	            ps.setString(7, ddb.getBan().getMaBan());
 	        } else {
@@ -253,7 +227,6 @@ public class DonDatBan_DAO {
 	        return false;
 	    }
 	}
-	// Trong DonDatBan_DAO.java
 
 	public DonDatBan getDonDatBanByMa(String maDDB) {
 	    DonDatBan ddb = null;
@@ -266,17 +239,11 @@ public class DonDatBan_DAO {
 	        LEFT JOIN Ban b ON ddb.maBan = b.maBan
 	        WHERE ddb.maDatBan = ?
 	        """;
-
-	    // ⭐ 1. Lấy kết nối ra khỏi try-with-resources.
 	    Connection con = DBconnection.getConnection(); 
-	    if (con == null) return null; // Nên kiểm tra null.
-
-	    // ⭐ 2. CHỈ sử dụng try-with-resources cho PreparedStatement.
+	    if (con == null) return null;
 	    try (PreparedStatement stmt = con.prepareStatement(sql)) { 
 	        
 	        stmt.setString(1, maDDB);
-	        
-	        // ⭐ 3. Dùng try-with-resources cho ResultSet (rs).
 	        try (ResultSet rs = stmt.executeQuery()) {
 	            if (rs.next()) {
 	                // LẤY DỮ LIỆU CƠ BẢN
@@ -287,12 +254,11 @@ public class DonDatBan_DAO {
 
 	                String maKH = rs.getString("maKH");
 	                String maNV = rs.getString("maNV");
-	                String maBanDB = rs.getString("maBan"); // Lỗi xảy ra khi đọc tiếp sau khi gọi DAO phụ
+	                String maBanDB = rs.getString("maBan");
 
 	                // TẠO KHÁCH HÀNG (Gọi DAO phụ)
 	                KhachHang khachHang = null;
 	                if (maKH != null && !maKH.trim().isEmpty()) {
-	                    // Đảm bảo khachHangDAO không đóng Connection (đã sửa ở bước trước)
 	                    khachHang = khachHangDAO.getKhachHangByMa(maKH); 
 	                    if (khachHang == null) {
 	                        khachHang = new KhachHang(maKH, "Khách lẻ (Error)", "");
@@ -310,11 +276,10 @@ public class DonDatBan_DAO {
 	                    nhanVien = new NhanVien("NV01", "Admin", "", "","",chucVuCuaNV);
 	                }
 
-	                // TẠO BAN (Tiếp tục đọc ResultSet, tại đây lỗi xảy ra nếu Connection đã đóng)
+	                // TẠO BAN 
 	                Ban ban = null;
 	                if (maBanDB != null && !maBanDB.trim().isEmpty()) {
-	                    // CÁC DÒNG ĐỌC RS Ở ĐÂY SẼ GÂY LỖI NẾU KẾT NỐI ĐÃ BỊ ĐÓNG.
-	                    String viTri = rs.getString("viTri"); // Dòng này hoặc tương tự có thể là dòng 317
+	                    String viTri = rs.getString("viTri");
 	                    int sucChua = rs.getInt("banSucChua");
 	                    String trangThaiBan = rs.getString("banTrangThai");
 	                    ban = new Ban(maBanDB, viTri, sucChua, trangThaiBan);
@@ -324,27 +289,20 @@ public class DonDatBan_DAO {
 	                ddb = new DonDatBan(maDatBan, ngayDat, soLuongKhach, trangThai, khachHang, nhanVien);
 	                ddb.setBan(ban);
 	            }
-	        } // rs.close() tự động ở đây
+	        } // rs.close()
 	    } catch (SQLException e) {
 	        System.err.println("Lỗi SQL khi tìm kiếm DonDatBan theo mã: " + e.getMessage());
 	        e.printStackTrace();
-	    } // stmt.close() tự động ở đây
-	    // ⭐ 4. KHÔNG ĐÓNG Connection con ở đây nếu nó là Singleton.
-
+	    } 
 	    return ddb;
 	}
 	public DefaultTableModel getMonAnByMaDDB(String maDDB) {
-        // Thiết lập cấu trúc cột cho bảng hiển thị
         String[] cols = {"Tên món", "SL", "Đơn giá", "Thành tiền"};
         DefaultTableModel model = new DefaultTableModel(cols, 0);
         Connection con = DBconnection.getInstance().getConnection();
         PreparedStatement stmt = null;
         ResultSet rs = null;
-        DecimalFormat df = new DecimalFormat("#,###"); // Định dạng tiền
-        
-        // Truy vấn CSDL để lấy Chi tiết đơn đặt bàn
-        // Giả sử có bảng ChiTietDonDatBan (CTDDB) và SanPham (SP)
-        // Cần JOIN 2 bảng này
+        DecimalFormat df = new DecimalFormat("#,###");
         String sql = "SELECT SP.tenSP, CTDDB.soLuong, SP.giaBan " +
                      "FROM ChiTietDonDatBan CTDDB " +
                      "JOIN SanPham SP ON CTDDB.maSP = SP.maSP " +
@@ -361,12 +319,12 @@ public class DonDatBan_DAO {
                 double donGia = rs.getDouble("giaBan");
                 double thanhTien = soLuong * donGia;
 
-                // Thêm hàng vào DefaultTableModel
+
                 model.addRow(new Object[]{
                     tenMon, 
                     soLuong, 
-                    df.format(donGia) + " VND", // Định dạng tiền để hiển thị
-                    df.format(thanhTien) + " VND" // Định dạng tiền để hiển thị
+                    df.format(donGia) + " VND", 
+                    df.format(thanhTien) + " VND" 
                 });
             }
         } catch (SQLException e) {
@@ -374,8 +332,8 @@ public class DonDatBan_DAO {
             e.printStackTrace();
         } finally {
             // Đóng tài nguyên
-            try { if (rs != null) rs.close(); } catch (SQLException e) { /* ignored */ }
-            try { if (stmt != null) stmt.close(); } catch (SQLException e) { /* ignored */ }
+            try { if (rs != null) rs.close(); } catch (SQLException e) {  }
+            try { if (stmt != null) stmt.close(); } catch (SQLException e) {  }
         }
         return model;
     }
@@ -389,69 +347,63 @@ public class DonDatBan_DAO {
 	    return ma;
 	}
 	public DonDatBan getLatestActiveDonDatBanByMaBan(String maBan) {
-        DonDatBan ddb = null;
-        
-        DBconnection.getInstance().connect();
+	    DonDatBan ddb = null;
+	    String sql = "SELECT TOP 1 "
+	               + "    ddb.maDatBan, ddb.ngayDat, ddb.soLuongKhach, ddb.trangThai, ddb.maNV, "
+	               + "    kh.maKH, kh.tenKH, kh.sDT, kh.eMail "
+	               + "FROM "
+	               + "    DonDatBan ddb "
+	               + "JOIN "
+	               + "    KhachHang kh ON ddb.maKH = kh.maKH "
+	               + "WHERE "
+	               + "    ddb.maBan = ? " 
+	               + "    AND ddb.trangThai IN ('Đã đặt', 'Đang phục vụ','Đã cọc') " 
+	               + "ORDER BY "
+	               + "    ddb.ngayDat DESC, ddb.maDatBan DESC"; 
 
-        // 💡 Giả định: 
-        // 1. Tên cột trong DB tương ứng với Entity: maDatBan, ngayDat, soLuongKhach, trangThai, maKH, maNV, maBan.
-        // 2. Sử dụng TOP 1 cho SQL Server để lấy bản ghi mới nhất.
-        String sql = "SELECT TOP 1 "
-                   + "    ddb.maDatBan, ddb.ngayDat, ddb.soLuongKhach, ddb.trangThai, ddb.maNV, "
-                   + "    kh.maKH, kh.tenKH, kh.sDT " 
-                   + "FROM "
-                   + "    DonDatBan ddb "
-                   + "JOIN "
-                   + "    KhachHang kh ON ddb.maKH = kh.maKH "
-                   + "WHERE "
-                   + "    ddb.maBan = ? " 
-                   + "    AND ddb.trangThai IN ('Đã đặt', 'Đang phục vụ') " 
-                   + "ORDER BY "
-                   + "    ddb.ngayDat DESC, ddb.maDatBan DESC"; 
+	    // Sử dụng try-with-resources để tự động đóng PreparedStatement và ResultSet
+	    try (Connection con = DBconnection.getConnection();
+	         PreparedStatement ps = con.prepareStatement(sql)) {
+	        
+	        // Kiểm tra kết nối (Dù đã được quản lý trong DBconnection, nhưng kiểm tra thêm cũng không thừa)
+	        if (con == null) return null; 
+	        
+	        ps.setString(1, maBan);
+	        
+	        try (ResultSet rs = ps.executeQuery()) {
+	            if (rs.next()) {
+	                
+	                // Lấy dữ liệu Khách hàng
+	                String maKHStr = rs.getString("maKH");
+	                String tenKH = rs.getString("tenKH");
+	                String sdtKH = rs.getString("sDT"); 
+	                String emailKH = rs.getString("eMail"); // ⭐ Lấy thêm email
+	                
+	                // Khởi tạo KhachHang (Cần đảm bảo Constructor có 4 tham số: ma, ten, sdt, email)
+	                KhachHang khachHang = new KhachHang(maKHStr, tenKH, sdtKH, emailKH); 
 
-        try (Connection con = DBconnection.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
-            
-            ps.setString(1, maBan);
-            
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    // 1. Tải thông tin Khách hàng (Entity.KhachHang)
-                    String maKHStr = rs.getString("maKH");
-                    String tenKH = rs.getString("tenKH");
-                    String sdtKH = rs.getString("sDT"); // Lấy theo tên cột trong DB
-                    
-                    // Khởi tạo KhachHang (Entity.KhachHang)
-                    // Giả định: Cần thêm tham số email vào constructor nếu DB có cột này
-                    KhachHang khachHang = new KhachHang(maKHStr, tenKH, sdtKH); 
-
-                    // 2. Tải thông tin Đơn đặt bàn (Entity.DonDatBan)
-                    String maDDB = rs.getString("maDatBan");
-                    String trangThai = rs.getString("trangThai");
-                    Date ngayDat = rs.getDate("ngayDat"); // Dùng java.sql.Date
-                    int soLuongKhach = rs.getInt("soLuongKhach");
-                    
-                    String maNVStr = rs.getString("maNV");
-                    // Giả định: Tạo đối tượng NhanVien tối thiểu (Entity.NhanVien)
-                    NhanVien nhanVien = new NhanVien(maNVStr); 
-                    
-                    // 3. Khởi tạo DonDatBan sử dụng Constructor chính
-                    ddb = new DonDatBan(maDDB, ngayDat, soLuongKhach, trangThai, khachHang, nhanVien); 
-                    
-                    // 4. Gán đối tượng Ban (Entity.Ban) nếu cần thiết (dựa trên maBan truyền vào)
-                    // Ban ban = new Ban(maBan); // Giả định: Ban có constructor(maBan)
-                    // ddb.setBan(ban); 
-                    
-                    // Do maKH trong DonDatBan Entity là KhachHang, và đã truyền vào constructor, 
-                    // nên không cần gọi ddb.setMaKH(khachHang) nữa.
-                }
-            }
-        } catch (SQLException e) {
-            System.err.println("Lỗi CSDL khi truy vấn đơn đặt bàn hoạt động: " + e.getMessage());
-            e.printStackTrace();
-        }
-        return ddb;
-    }
+	                // Lấy dữ liệu Đơn đặt bàn
+	                String maDDB = rs.getString("maDatBan");
+	                String trangThai = rs.getString("trangThai");
+	                java.sql.Date ngayDat = rs.getDate("ngayDat"); 
+	                int soLuongKhach = rs.getInt("soLuongKhach");
+	                
+	                // Lấy thông tin Nhân viên
+	                String maNVStr = rs.getString("maNV");
+	                NhanVien nhanVien = new NhanVien(maNVStr); 
+	                
+	                // 3. Khởi tạo DonDatBan
+	                ddb = new DonDatBan(maDDB, ngayDat, soLuongKhach, trangThai, khachHang, nhanVien); 
+	                Ban ban = new Ban(maBan); 
+	                ddb.setBan(ban); 
+	            }
+	        }
+	    } catch (SQLException e) {
+	        System.err.println("Lỗi CSDL khi truy vấn đơn đặt bàn hoạt động: " + e.getMessage());
+	        e.printStackTrace();
+	    }
+	    return ddb;
+	}
 	public DonDatBan getDonDatBanActiveByMaBan(String maBan) {
 	    DonDatBan ddb = null;
 	    Connection con = DBconnection.getInstance().getConnection(); 
@@ -459,14 +411,11 @@ public class DonDatBan_DAO {
 	    ResultSet rs = null;
 
 	    try {
-	        // ⭐ SỬA LỖI: SỬ DỤNG TRIM(DDB.trangThai)
-	        // để loại bỏ khoảng trắng thừa khi so sánh trạng thái.
 	        String sql = "SELECT DDB.MaDatBan, DDB.maKH, DDB.maBan, DDB.soLuongKhach, DDB.trangThai, DDB.ngayDat, " +
 	                     "KH.tenKH, KH.sdt " + 
 	                     "FROM DonDatBan DDB " +
 	                     "JOIN KhachHang KH ON DDB.maKH = KH.maKH " +
-	                     // ⭐ THAY ĐỔI LỚN: Dùng TRIM() và N'...'
-	                     "WHERE DDB.maBan = ? AND UPPER(TRIM(DDB.trangThai)) IN (N'ĐÃ ĐẶT', N'ĐANG PHỤC VỤ')";
+	                     "WHERE DDB.maBan = ? AND UPPER(TRIM(DDB.trangThai)) IN (N'ĐẶT TRƯỚC', N'ĐANG PHỤC VỤ')";
 	        
 	        stmt = con.prepareStatement(sql);
 	        stmt.setString(1, maBan);
@@ -475,11 +424,11 @@ public class DonDatBan_DAO {
 	        if (rs.next()) {
 	            System.out.println("Đã tìm thấy Đơn Đặt Bàn đang hoạt động cho Mã Bàn: " + maBan);
 	            
-	            // 1. Tạo Entity Khách Hàng 
+
 	            KhachHang kh = new KhachHang();
 	            kh.setMaKH(rs.getString("maKH"));
 	            kh.setTenKH(rs.getString("tenKH"));
-	            kh.setsDT(rs.getString("sdt")); // Sử dụng setsDT() theo Entity của bạn
+	            kh.setsDT(rs.getString("sdt")); 
 
 	            // 2. Tạo Entity Bàn 
 	            Ban ban = new Ban();
@@ -506,5 +455,25 @@ public class DonDatBan_DAO {
 	    }
 	    return ddb;
 	}
+	public boolean updateTrangThaiDonDatBan(String maDDB, String newTrangThai) {
+        Connection con = DBconnection.getConnection(); 
+        if (con == null) return false;
+
+        String sql = "UPDATE DonDatBan SET TrangThai = ? WHERE maDatBan = ?";
+        int rowsAffected = 0;
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setString(1, newTrangThai);
+            ps.setString(2, maDDB);
+
+            rowsAffected = ps.executeUpdate();
+
+        } catch (SQLException e) {
+            System.err.println("Lỗi SQL khi cập nhật trạng thái Đơn Đặt Bàn (" + maDDB + ") sang " + newTrangThai + ":");
+            e.printStackTrace();
+        } 
+
+        return rowsAffected > 0;
+    }
 
 }

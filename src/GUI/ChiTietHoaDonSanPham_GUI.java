@@ -44,7 +44,7 @@ public class ChiTietHoaDonSanPham_GUI extends JPanel {
 	public ChiTietHoaDonSanPham_GUI(GoiMon_GUI hoaDonPanel, DefaultTableModel modelMonAn, boolean isChuyenKhoan, String maBan, String maNV, String maKH ) {
 	
 
-		this.parentPanel = hoaDonPanel; // Lưu panel cha
+		this.parentPanel = hoaDonPanel; 
 		this.isChuyenKhoanMode = isChuyenKhoan;
 		this.maBanHienTai = maBan;
         this.maNVHienTai = maNV;
@@ -78,12 +78,9 @@ public class ChiTietHoaDonSanPham_GUI extends JPanel {
 		tblChiTiet = new JTable(tblModel);
 		JScrollPane scroll = new JScrollPane(tblChiTiet);
 
-		// THAY ĐỔI: Thêm dòng này để giới hạn chiều cao của bảng
-		scroll.setPreferredSize(new Dimension(500, 250)); // (Rộng, Cao)
+		scroll.setPreferredSize(new Dimension(500, 250)); 
 
 		add(scroll, BorderLayout.CENTER);
-
-		// TẠO BẢN SAO ĐỘC LẬP
 		this.modelMonAnGoc = new DefaultTableModel(new Object[] { "MaMon", "Tên món", "SL", "Đơn giá", "Thành tiền" }, 0);
 
 		this.tongTienThuc = 0;
@@ -169,9 +166,8 @@ public class ChiTietHoaDonSanPham_GUI extends JPanel {
 		this.btnIn
 				.addActionListener(e -> handleInHoaDon(tblModel, this.tongTienThuc, this.vatThuc, this.thanhTienThuc));
 
-		// THAY ĐỔI: Logic nút ĐÓNG
+	
 		btnDong.addActionListener(e -> {
-			// Lấy JDialog cha và đóng nó
 			Window window = SwingUtilities.getWindowAncestor(this);
 			if (window != null) {
 				window.dispose();
@@ -249,30 +245,29 @@ public class ChiTietHoaDonSanPham_GUI extends JPanel {
 			java.sql.Date sqlNgayLap = java.sql.Date.valueOf(LocalDate.now());
 
 			HoaDon hd = new HoaDon(
-					maHD,       // String maHD
-				    maNV,       // String maNV
-				    maKH,       // String maKH
-				    maKM,       // String maKM
-				    maBan,   // String maDatBan
-				    sqlNgayLap       // double tongTien (tổng sau VAT)
+					maHD,      
+				    maNV,       
+				    maKH,      
+				    maKM,       
+				    maBan,   
+				    sqlNgayLap      
 		        );
 
 			HoaDon_DAO dao = new HoaDon_DAO();
 
-			// THAY ĐỔI: Dùng modelMonAnGoc (có MaMon) để lưu CSDL
-			if (dao.themHoaDon(hd, modelMonAnGoc)) {
+			if (dao.insert(hd)) {
 				JOptionPane.showMessageDialog(this, "✅ Lưu hóa đơn thành công! Mã HD: " + maHD);
 
-				// THAY ĐỔI: Gọi hàm clear thông qua biến parentPanel
+		
 				if (parentPanel != null) {
 					parentPanel.clearOrderTable1();
 				}
 
-				showHoaDonInDialog(tblModel, // model hiển thị
+				showHoaDonInDialog(tblModel,
 						df.format(tongTien), df.format(vat), df.format(thanhTien), df.format(khachTra),
 						df.format(tienThua >= 0 ? tienThua : 0));
 
-				// THAY ĐỔI: Logic đóng cửa sổ
+				
 				Window window = SwingUtilities.getWindowAncestor(this);
 				if (window != null)
 					window.dispose();
@@ -285,7 +280,7 @@ public class ChiTietHoaDonSanPham_GUI extends JPanel {
 					JOptionPane.ERROR_MESSAGE);
 		} catch (Exception ex) {
 			JOptionPane.showMessageDialog(this, "Đã xảy ra lỗi: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
-			ex.printStackTrace(); // In lỗi ra console
+			ex.printStackTrace(); 
 		}
 	}
 
@@ -297,7 +292,7 @@ public class ChiTietHoaDonSanPham_GUI extends JPanel {
 		double tienThua = 0;
 
 		try {
-			// THAY ĐỔI: Đảm bảo JOptionPane hiển thị đúng
+
 			if (JOptionPane.showConfirmDialog(this, "Xác nhận thanh toán CHUYỂN KHOẢN và in hóa đơn?", "Xác nhận",
 					JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION)
 				return;
@@ -326,21 +321,18 @@ public class ChiTietHoaDonSanPham_GUI extends JPanel {
 			java.sql.Date sqlNgayLap = java.sql.Date.valueOf(LocalDate.now());
 
 			HoaDon hd = new HoaDon(
-					maHD,       // String maHD
-				    maNV,       // String maNV
-				    maKH,       // String maKH
-				    maKM,       // String maKM
-				    maBan,   // String maDatBan
-				    sqlNgayLap      // double tongTien (tổng sau VAT)
+					maHD,       
+				    maNV,     
+				    maKH,      
+				    maKM,     
+				    maBan,   
+				    sqlNgayLap     
 		        );
 
 			HoaDon_DAO dao = new HoaDon_DAO();
 
-			// THAY ĐỔI: Dùng modelMonAnGoc (có MaMon) để lưu CSDL
-			if (dao.themHoaDon(hd, modelMonAnGoc)) {
+			if (dao.insert(hd)) {
 				JOptionPane.showMessageDialog(this, "✅ Lưu hóa đơn thành công! Mã HD: " + maHD);
-
-				// THAY ĐỔI: Gọi hàm clear thông qua biến parentPanel
 				if (parentPanel != null) {
 					parentPanel.clearOrderTable1();
 				}
@@ -349,7 +341,6 @@ public class ChiTietHoaDonSanPham_GUI extends JPanel {
 				showHoaDonInDialog(this.modelMonAnGoc, df.format(tongTien), df.format(vat), df.format(thanhTien),
 						df.format(khachTra), df.format(tienThua));
 
-				// THAY ĐỔI: Logic đóng cửa sổ
 				Window window = SwingUtilities.getWindowAncestor(this);
 				if (window != null)
 					window.dispose();
@@ -360,19 +351,19 @@ public class ChiTietHoaDonSanPham_GUI extends JPanel {
 		} catch (Exception ex) {
 			JOptionPane.showMessageDialog(this, "❌ Lỗi khi thanh toán chuyển khoản: " + ex.getMessage(), "Lỗi",
 					JOptionPane.ERROR_MESSAGE);
-			ex.printStackTrace(); // In lỗi ra console
+			ex.printStackTrace(); 
 		}
 	}
 
 	/** ==================== HIỂN THỊ POPUP IN ==================== */
 	private void showHoaDonInDialog(DefaultTableModel model, String tong, String vat, String thanhTien,
 			String tienKhach, String tienThua) {
-		Window owner = SwingUtilities.getWindowAncestor(this); // <-- SỬA THÀNH 'Window'
+		Window owner = SwingUtilities.getWindowAncestor(this); 
 
 		// THAY ĐỔI: Tạo JDialog mới
 		JDialog dialog = new JDialog(owner, "In hóa đơn");
 		dialog.setSize(550, 700);
-		dialog.setLocationRelativeTo(owner); // Hiển thị giữa owner
+		dialog.setLocationRelativeTo(owner);
 		dialog.setLayout(new BorderLayout(10, 10));
 
 		// Header
@@ -398,10 +389,10 @@ public class ChiTietHoaDonSanPham_GUI extends JPanel {
 		JTable tblIn = new JTable(tblModel);
 
 		for (int i = 0; i < model.getRowCount(); i++) {
-			tblModel.addRow(new Object[] { model.getValueAt(i, 1), // Tên món là cột 1
-					model.getValueAt(i, 2), // SL là cột 2
-					df.format(model.getValueAt(i, 3)), // Đơn giá là cột 3
-					df.format(model.getValueAt(i, 4)) // Thành tiền là cột 4
+			tblModel.addRow(new Object[] { model.getValueAt(i, 1), 
+					model.getValueAt(i, 2), 
+					df.format(model.getValueAt(i, 3)), 
+					df.format(model.getValueAt(i, 4)) 
 			});
 		}
 		JScrollPane scroll = new JScrollPane(tblIn);
@@ -438,7 +429,7 @@ public class ChiTietHoaDonSanPham_GUI extends JPanel {
 		String maHD;
 		Random rand = new Random();
 		do {
-			int soNgauNhien = rand.nextInt(900) + 100; // 3 số
+			int soNgauNhien = rand.nextInt(900) + 100; 
 			maHD = "HD" + soNgauNhien;
 		} while (hoaDonDAO.kiemTraTonTai(maHD));
 		return maHD;

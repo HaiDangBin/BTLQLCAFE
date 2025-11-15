@@ -17,14 +17,13 @@ public class SanPham_DAO {
     }
 	public ArrayList<SanPham> getAllSanPham() {
         ArrayList<SanPham> ds = new ArrayList<>();
-        // SỬA: Không gọi DBconnection.getConnection() nữa, dùng biến conn
         String sql = "SELECT m.maSP, m.tenSP, m.moTa, m.gia, m.soLuong, m.hinhAnh, "
                 + "l.maLoai AS maLoai, l.tenLoai AS tenLoai "
                 + "FROM SanPham m "
                 + "JOIN LoaiSanPham l ON m.maLoai = l.maLoai";
-        if (conn == null) return ds; // Kiểm tra kết nối
+        if (conn == null) return ds; 
 
-        try (PreparedStatement stmt = conn.prepareStatement(sql); // SỬA: Dùng biến conn
+        try (PreparedStatement stmt = conn.prepareStatement(sql); 
              ResultSet rs = stmt.executeQuery()) {
 
             while (rs.next()) {
@@ -57,7 +56,6 @@ public class SanPham_DAO {
             JOIN LoaiSanPham l ON m.maLoai = l.maLoai
             WHERE m.maSP = ?
         """;
-        // SỬA: Bỏ DriverManager, dùng biến conn
         if (conn == null) {
             System.out.println("❌ Lỗi kết nối CSDL khi tìm sản phẩm.");
             return null;
@@ -98,9 +96,9 @@ public class SanPham_DAO {
             WHERE m.maLoai = ?
         """;
         
-        if (conn == null) return ds; // SỬA: Dùng biến conn
+        if (conn == null) return ds; 
 
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) { // SỬA: Dùng biến conn
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) { 
             stmt.setString(1, maLoai);
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
@@ -127,14 +125,13 @@ public class SanPham_DAO {
         return ds;
     }
 	public boolean themSanPham(SanPham sp) {
-        // SỬA: Xóa bỏ các lệnh gọi DBconnection
         if (conn == null) {
             System.out.println("❌ Lỗi kết nối CSDL khi thêm sản phẩm.");
             return false;
         }
 
         String sql = "INSERT INTO SanPham (maSP, tenSP, moTa, gia, soLuong,  maLoai, hinhAnh) VALUES (?, ?, ?, ?, ?, ?, ?)";
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) { // SỬA: Dùng biến conn
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) { 
             stmt.setString(1, sp.getMaSP());
             stmt.setString(2, sp.getTenSP());
             stmt.setString(3, sp.getMoTa());
@@ -153,7 +150,6 @@ public class SanPham_DAO {
     }
 	public boolean capNhat(SanPham sp) {
         String sql = "UPDATE SanPham SET tenSP = ?, moTa = ?, gia = ?, soLuong = ?, maLoai = ?, hinhAnh = ? WHERE maSP = ?";
-        // SỬA: Bỏ DriverManager, dùng biến conn
         if (conn == null) {
             System.out.println("❌ Lỗi kết nối CSDL khi cập nhật món ăn.");
             return false;
@@ -177,7 +173,6 @@ public class SanPham_DAO {
     }
 	public boolean xoaSP(String maSP) {
         String sql = "DELETE FROM SanPham WHERE maSP = ?";
-        // SỬA: Bỏ DriverManager, dùng biến conn
         if (conn == null) {
             System.out.println("❌ Lỗi kết nối CSDL khi xóa món ăn.");
             return false;

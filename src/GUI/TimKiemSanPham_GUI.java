@@ -50,8 +50,6 @@ public class TimKiemSanPham_GUI extends JPanel implements ActionListener {
     private RoundedButton btnTim; 
     private DefaultTableModel model;
     private JTable table;
-
-    // Khai báo DAO và Format
     private SanPham_DAO dao = new SanPham_DAO();
     private DecimalFormat df = new DecimalFormat("#,### VND");
 	private RoundedButton btnQuayLai;
@@ -61,7 +59,7 @@ public class TimKiemSanPham_GUI extends JPanel implements ActionListener {
 	private JComboBox<String> comboBoxLoai;
 
     public TimKiemSanPham_GUI() {
-        // Kết nối database
+ 
         DBconnection.getInstance().connect();
 
         setLayout(new BorderLayout());
@@ -85,8 +83,7 @@ public class TimKiemSanPham_GUI extends JPanel implements ActionListener {
         tenMon.setPreferredSize(new Dimension(130, 30));
         tenMon.setFont(new Font("Segoe UI", Font.BOLD, 18));
         txtTenMon = new JTextField();
-        
-        // Sửa: Đổi từ JButton btnTim thành RoundedButton btnTim
+
         btnTim = new RoundedButton("Tìm", new Color(0, 0, 204)); 
         
         JLabel loaiMon = new JLabel("Loại:");
@@ -113,12 +110,10 @@ public class TimKiemSanPham_GUI extends JPanel implements ActionListener {
         // Bảng
         model = new DefaultTableModel(new Object[]{"Mã sản phẩm", "Tên sản phẩm", "Mô tả", "Đơn giá", "Số lượng", "Loại sản phẩm", "Hình ảnh"}, 0) {
             private static final long serialVersionUID = 1L;
-            
-            // Phương thức quan trọng: Báo cho JTable biết kiểu dữ liệu của mỗi cột
             @Override
             public Class<?> getColumnClass(int columnIndex) {
-                if (columnIndex == 6) { // Cột "Hình ảnh" là cột thứ 5 (index 0 là cột 1)
-                    return ImageIcon.class; // Trả về ImageIcon
+                if (columnIndex == 6) { 
+                    return ImageIcon.class; 
                 }
                 return super.getColumnClass(columnIndex);
             }
@@ -133,12 +128,10 @@ public class TimKiemSanPham_GUI extends JPanel implements ActionListener {
         header.setPreferredSize(new Dimension(header.getWidth(), 30));
         SelectedRowRenderer renderer = new SelectedRowRenderer();
         for (int i = 0; i < table.getColumnCount(); i++) {
-            // CHỈ ÁP DỤNG RENDERER TÙY CHỈNH CHO CÁC CỘT KHÔNG PHẢI ẢNH
-            if (i != 6) { // Cột index 5 là cột "Hình ảnh"
+ 
+            if (i != 6) {
                 table.getColumnModel().getColumn(i).setCellRenderer(renderer);
             } 
-            // CỘT ẢNH (INDEX 5) SẼ TỰ ĐỘNG SỬ DỤNG DEFAULT RENDERER CHO ImageIcon
-            // Do bạn đã định nghĩa getColumnClass(5) là ImageIcon.class
         }
         table.getColumnModel().getColumn(2).setPreferredWidth(350);
         table.getColumnModel().getColumn(5).setPreferredWidth(20);
@@ -150,20 +143,10 @@ public class TimKiemSanPham_GUI extends JPanel implements ActionListener {
         pSouth.setLayout(new BorderLayout());
         JPanel pnB = new JPanel();
         pnB.setLayout(new BoxLayout(pnB, BoxLayout.X_AXIS));
-
-        
-//        btnQuayLai = new RoundedButton("Quay lại", new Color(0, 102, 102));
         btnLamMoi = new RoundedButton("Làm mới", new Color(96, 96, 96));
-//        btnXemMon = new RoundedButton("Xem món ăn", new Color(0, 76, 153));
-
         pnB.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
-//        pnB.add(btnQuayLai);
-//        btnQuayLai.setPreferredSize(new Dimension(90, 50));
         pnB.add(Box.createHorizontalStrut(20));
         pnB.add(btnLamMoi);
-//        pnB.add(Box.createHorizontalStrut(20));
-//        pnB.add(btnXemMon);
-
         pSouth.add(pnB);
         pnB.setBackground(new Color(255, 255, 255));
         pSouth.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -171,10 +154,8 @@ public class TimKiemSanPham_GUI extends JPanel implements ActionListener {
         JPanel wrap = new JPanel(new BorderLayout());
         wrap.setBorder(BorderFactory.createEmptyBorder(10, 10, 0, 10));
         wrap.add(pCen, BorderLayout.CENTER);
-        add(wrap, BorderLayout.CENTER);
-        
-        setSize(1000, 500);
-        
+        add(wrap, BorderLayout.CENTER);    
+        setSize(1000, 500);    
         setVisible(true);
 
         
@@ -182,10 +163,9 @@ public class TimKiemSanPham_GUI extends JPanel implements ActionListener {
         btnLamMoi.addActionListener(this);
         comboBoxLoai.addActionListener(this);
         
-        loadAllDataToTable(); // Tải toàn bộ dữ liệu khi khởi tạo
+        loadAllDataToTable(); 
     }
 
-    // Tải dữ liệu từ DAO vào TB
     private void loadAllDataToTable() {
         model.setRowCount(0);
         for (SanPham sp : dao.getAllSanPham()) {
@@ -221,16 +201,12 @@ public class TimKiemSanPham_GUI extends JPanel implements ActionListener {
         ImageIcon iconAnh = null;
         try {
             String imagePath = sp.getHinhAnh();
-            // Giả sử imagePath chứa "images/ten_file.png"
             String fileNameOnly = imagePath.contains("/") ? imagePath.substring(imagePath.lastIndexOf('/') + 1) : imagePath;
-            
-            // Tải ảnh từ thư mục và thu nhỏ
             Image image = new ImageIcon("images/" + fileNameOnly).getImage(); 
             Image scaledImage = image.getScaledInstance(50, 50, Image.SCALE_SMOOTH);
             iconAnh = new ImageIcon(scaledImage);
             
         } catch (Exception e) {
-            // Trả về null hoặc một Icon mặc định nếu có lỗi (ví dụ: không tìm thấy ảnh)
             System.err.println("Lỗi tải ảnh cho sản phẩm " + sp.getMaSP() + ": " + e.getMessage());
             iconAnh = null; 
         }
@@ -241,40 +217,23 @@ public class TimKiemSanPham_GUI extends JPanel implements ActionListener {
     private void timKiemMonAn() {
         String maTim = txtMaMon.getText().trim();
         String tenTim = txtTenMon.getText().trim();
-        
-        // 1. Lấy Mã loại món từ ComboBox
         String tenLoai = (String) comboBoxLoai.getSelectedItem(); 
         String maLoaiTim = mapCodeToLoaiSP(tenLoai);
-
         model.setRowCount(0);
         ArrayList<SanPham> dsKetQuaTheoLoai;
-
-        // 2. Lấy dữ liệu từ DAO, đã lọc theo loại món
         if (maLoaiTim.isEmpty() || tenLoai.equals("Tất cả")) {
-            // Nếu chọn "Tất cả", lấy toàn bộ danh sách từ DB
             dsKetQuaTheoLoai = dao.getAllSanPham(); 
         } else {
-            // GỌI HÀM DAO: Lấy danh sách chỉ của loại món đã chọn
             dsKetQuaTheoLoai = dao.getMonAnByLoaiMon(maLoaiTim); 
         }
-        
-        // 3. Lọc tiếp theo Mã món ăn và Tên món ăn
-        ArrayList<SanPham> dsLocCuoi = new ArrayList<>();
-        
+        ArrayList<SanPham> dsLocCuoi = new ArrayList<>();        
         for (SanPham mon : dsKetQuaTheoLoai) {
-            // Lọc theo Mã món ăn: So sánh tương đối và không phân biệt chữ hoa/thường
             boolean matchMa = maTim.isEmpty() || mon.getMaSP().toLowerCase().contains(maTim.toLowerCase());
-            
-            // Lọc theo Tên món ăn: So sánh tương đối và không phân biệt chữ hoa/thường
             boolean matchTen = tenTim.isEmpty() || mon.getTenSP().toLowerCase().contains(tenTim.toLowerCase());
-
-            // Món ăn phải khớp tiêu chí Loại món (đã được lọc ở Bước 2) AND Mã món ăn AND Tên món ăn
             if (matchMa && matchTen) {
                 dsLocCuoi.add(mon);
             }
         }
-        
-        // 4. Đổ dữ liệu đã lọc vào bảng
         for (SanPham sp : dsLocCuoi) {
         	ImageIcon icon = getMonAnImage(sp);
             model.addRow(new Object[]{
@@ -390,9 +349,5 @@ public class TimKiemSanPham_GUI extends JPanel implements ActionListener {
             super.paintComponent(g2);
             g2.dispose();
         }
-    }
-
-	
-    
-   
+    }  
 }

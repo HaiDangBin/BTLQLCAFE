@@ -16,6 +16,7 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.JTableHeader;
 
+import DAO.LoaiSanPham_DAO;
 import DAO.SanPham_DAO;
 import Entity.LoaiSanPham;
 import Entity.SanPham;
@@ -133,12 +134,10 @@ public class SanPham_GUI extends JPanel implements ActionListener {
         // Bảng dữ liệu
         model = new DefaultTableModel(new Object[]{"Mã sản phẩm", "Tên sản phẩm", "Mô tả", "Đơn giá","Số lượng", "Loại sản phẩm", "Hình ảnh"}, 0) {
             private static final long serialVersionUID = 1L;
-            
-            // Phương thức quan trọng: Báo cho JTable biết kiểu dữ liệu của mỗi cột
             @Override
             public Class<?> getColumnClass(int columnIndex) {
-                if (columnIndex == 6) { // Cột "Hình ảnh" là cột thứ 5 (index 0 là cột 1)
-                    return ImageIcon.class; // Trả về ImageIcon
+                if (columnIndex == 6) { 
+                    return ImageIcon.class; 
                 }
                 return super.getColumnClass(columnIndex);
             }
@@ -162,7 +161,6 @@ public class SanPham_GUI extends JPanel implements ActionListener {
                 }
                 if (e.getClickCount() == 1 && table.rowAtPoint(e.getPoint()) == -1) {
                     table.clearSelection();
-                    //clearInputFields();
                 }
             }
         });
@@ -178,12 +176,9 @@ public class SanPham_GUI extends JPanel implements ActionListener {
         
         SelectedRowRenderer renderer = new SelectedRowRenderer();
         for (int i = 0; i < table.getColumnCount(); i++) {
-            // CHỈ ÁP DỤNG RENDERER TÙY CHỈNH CHO CÁC CỘT KHÔNG PHẢI ẢNH
-            if (i != 6) { // Cột index 5 là cột "Hình ảnh"
+            if (i != 6) { 
                 table.getColumnModel().getColumn(i).setCellRenderer(renderer);
             } 
-            // CỘT ẢNH (INDEX 5) SẼ TỰ ĐỘNG SỬ DỤNG DEFAULT RENDERER CHO ImageIcon
-            // Do bạn đã định nghĩa getColumnClass(5) là ImageIcon.class
         }
         
         table.getColumnModel().getColumn(2).setPreferredWidth(350);
@@ -204,6 +199,14 @@ public class SanPham_GUI extends JPanel implements ActionListener {
         btnCapNhatSP.addActionListener(this); 
         btnSuaSP.addActionListener(this); 
         btnLamMoi.addActionListener(this);
+        btnThemLoai.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JFrame parentFrame = (JFrame) SwingUtilities.getWindowAncestor(SanPham_GUI.this);
+                ThemLoaiSanPham_GUI dialog = new ThemLoaiSanPham_GUI(parentFrame, SanPham_GUI.this);
+                dialog.setVisible(true);
+            }
+        });
 
         addSearchListener();
         loadAllDataToTable(); 
@@ -213,8 +216,6 @@ public class SanPham_GUI extends JPanel implements ActionListener {
         model.setRowCount(0);
         for (SanPham sp : dao.getAllSanPham()) {
             String tenLoai = (sp.getMaLoai() != null) ? sp.getMaLoai().getTenLoai() : "Chưa phân loại";
-            
-            // ********** PHẦN CẦN SỬA ĐỔI **********
             ImageIcon iconAnh = null;
             try {
                 String imagePath = sp.getHinhAnh();
@@ -230,7 +231,6 @@ public class SanPham_GUI extends JPanel implements ActionListener {
             } catch (Exception e) {
                 iconAnh = null; 
             }
-            // ***************************************
             
             model.addRow(new Object[]{
                 sp.getMaSP(),
@@ -243,16 +243,17 @@ public class SanPham_GUI extends JPanel implements ActionListener {
             });
         }
     }
-//
+    public void loadLoaiSanPhamData() {
+
+        loadAllDataToTable();
+        System.out.println("✅ Dữ liệu loại sản phẩm đã được tải lại.");
+    }
+
     @Override
     public void actionPerformed(ActionEvent e) {
-        // [C]REATE - Thêm món ăn mới (HIỂN THỊ FORM NHẬP LIỆU)
         if (e.getSource() == btnThemSP) {
             SanPhamCRUD dialog = new SanPhamCRUD(this, null, false, "Thêm sản phẩm mới");
             dialog.setVisible(true); 
-            // loadDataToTable() được gọi trong dialog sau khi thành công
-            
-        // [D]ELETE - Xóa món ăn
         } else if (e.getSource() == btnXoaSP) {
             int selectedRow = table.getSelectedRow();
             if (selectedRow >= 0) {
@@ -277,8 +278,6 @@ public class SanPham_GUI extends JPanel implements ActionListener {
             } else {
                 JOptionPane.showMessageDialog(this, "⚠️ Vui lòng chọn một món ăn từ bảng để xóa!");
             }
-            
-        // [U]PDATE (Chi tiết)
         } else if (e.getSource() == btnCapNhatSP) {
             int selectedRow = table.getSelectedRow();
             if (selectedRow >= 0) {
@@ -292,12 +291,8 @@ public class SanPham_GUI extends JPanel implements ActionListener {
                     dialog.txtMaSP.setText(sp.getMaSP());
                     dialog.txtTenSP.setText(sp.getTenSP());
                     dialog.txtMoTa.setText(sp.getMoTa());
-                    
-                    // Loại bỏ định dạng VND và dấu phẩy để hiển thị giá trị Double
                     dialog.txtDonGia.setText(String.valueOf(sp.getGia()));
                     dialog.txtSoLuong.setText(""+sp.getSoLuong());
-                    
-                    // Set ComboBox
                     String loaiMonHienTai = mapCodeToLoaiSP(sp.getMaLoai().getMaLoai());
                     String[] loaiOptions = {"Caffe", "Trà sữa", "Sinh tố", "Bánh ngọt & Ăn kèm", "Đá xay", "Nước ép", "Soda", "Trà trái cây"};
                     for (int i = 0; i < loaiOptions.length; i++) {
@@ -317,8 +312,6 @@ public class SanPham_GUI extends JPanel implements ActionListener {
             } else {
                 JOptionPane.showMessageDialog(this, "⚠️ Vui lòng chọn một món ăn từ bảng để cập nhật chi tiết!");
             }
-            
-        // [U]PDATE (Sửa tên nhanh)
         } else if (e.getSource() == btnSuaSP) {
             int selectedRow = table.getSelectedRow();
             if (selectedRow >= 0) {
@@ -331,7 +324,6 @@ public class SanPham_GUI extends JPanel implements ActionListener {
                         try {
                             SanPham originalMon = dao.getSanPhamByMaSP(maMonHienTai);
                             if (originalMon != null) {
-                                // Sử dụng lại các thông tin cũ, chỉ thay đổi tên
                                 SanPham updatedMon = new SanPham(originalMon.getMaSP(), tenMonNew, originalMon.getMoTa(), originalMon.getGia(), originalMon.getSoLuong(), originalMon.getMaLoai(), originalMon.getHinhAnh());
                                 boolean success = dao.capNhat(updatedMon); 
                                 
@@ -462,6 +454,109 @@ public class SanPham_GUI extends JPanel implements ActionListener {
             }
         }
     }
+    public class ThemLoaiSanPham_GUI extends JDialog {
+        private JTextField txtMaLoai;
+        private JTextField txtTenLoai;
+        private JButton btnThem;
+        private JButton btnHuy;
+        private LoaiSanPham_DAO loaiSP_DAO;
+        private SanPham_GUI parentGUI;
+        
+        public ThemLoaiSanPham_GUI(JFrame parent, SanPham_GUI parentGUI) {
+            super(parent, "Thêm Loại Sản Phẩm Mới", true);
+            this.loaiSP_DAO = new LoaiSanPham_DAO();
+            this.parentGUI = parentGUI;
+            
+            setSize(400, 200); 
+            setLocationRelativeTo(parent); 
+            setLayout(new BorderLayout(10, 10));
+            
+            // --- Phần Nhập liệu (Center Panel) ---
+            JPanel pCenter = new JPanel(new GridLayout(2, 2, 10, 10));
+            pCenter.setBorder(BorderFactory.createEmptyBorder(15, 15, 5, 15));
+            
+            // Mã loại
+            pCenter.add(new JLabel("Mã loại:"));
+            txtMaLoai = new JTextField(15);
+            txtMaLoai.setEditable(false);
+            pCenter.add(txtMaLoai); 
+            
+            // Tên loại
+            pCenter.add(new JLabel("Tên loại:"));
+            txtTenLoai = new JTextField(15);
+            pCenter.add(txtTenLoai);
+            
+            add(pCenter, BorderLayout.CENTER);
+            
+            // --- Phần Nút bấm (South Panel) ---
+            JPanel pSouth = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
+            
+            btnThem = new JButton("Thêm");
+            btnHuy = new JButton("Hủy");
+            
+            // Thêm màu sắc (Tùy chọn)
+            btnThem.setBackground(new Color(40, 167, 69)); 
+            btnThem.setForeground(Color.WHITE);
+            btnHuy.setBackground(new Color(108, 117, 125)); 
+            btnHuy.setForeground(Color.WHITE);
+            
+            pSouth.add(btnThem);
+            pSouth.add(btnHuy);
+            
+            add(pSouth, BorderLayout.SOUTH);
+            
+            loadNewMaLoai();
+            // Xử lý sự kiện
+            handleEvents();
+        }
+        private void loadNewMaLoai() {
+            String maMoi = loaiSP_DAO.phatSinhMaLoai();
+            
+            if (maMoi != null) {
+
+                txtMaLoai.setText(maMoi);
+            } else {
+  
+                txtMaLoai.setText("LỖI MÃ");
+                txtMaLoai.setBackground(new Color(255, 204, 204)); 
+                JOptionPane.showMessageDialog(this, "Không thể phát sinh Mã loại tự động. Vui lòng kiểm tra lại CSDL hoặc Mã đã vượt quá LSP99.", "Lỗi Phát Sinh Mã", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+        
+        private void handleEvents() {
+            btnHuy.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    dispose();
+                }
+            });
+            btnThem.addActionListener(new ActionListener() {               
+				@Override
+                public void actionPerformed(ActionEvent e) {
+                    String tenLoai = txtTenLoai.getText().trim();
+                    String maLoai = txtMaLoai.getText().trim();
+
+                    if (tenLoai.isEmpty()) {
+                        JOptionPane.showMessageDialog(ThemLoaiSanPham_GUI.this, "Vui lòng nhập Tên loại sản phẩm.", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
+                        return;
+                    }
+                    
+                    LoaiSanPham newLoaiSP = new LoaiSanPham(maLoai, tenLoai);
+                    boolean success = loaiSP_DAO.themLoaiSanPham(newLoaiSP);
+                    
+                    if (success) {
+                        JOptionPane.showMessageDialog(ThemLoaiSanPham_GUI.this, "✅ Đã thêm loại sản phẩm thành công: " + tenLoai, "Thành công", JOptionPane.INFORMATION_MESSAGE);
+                        parentGUI.loadLoaiSanPhamData(); 
+                        txtMaLoai.setText(loaiSP_DAO.phatSinhMaLoai()); 
+                        txtTenLoai.setText(""); 
+                        dispose(); 
+                    } else {
+                        JOptionPane.showMessageDialog(ThemLoaiSanPham_GUI.this, "❌ Lỗi: Không thể thêm loại sản phẩm. Vui lòng kiểm tra kết nối CSDL và dữ liệu.", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+            });
+        }
+    }
    
 //    // Custom Renderer để tô màu dòng được chọn
   class SelectedRowRenderer extends DefaultTableCellRenderer {
@@ -582,15 +677,15 @@ public class SanPham_GUI extends JPanel implements ActionListener {
         
         public SanPhamCRUD(SanPham_GUI parentGUI, SanPham sp,  boolean isUpdate, String title) {
             this.isUpdateMode = isUpdate;
-            this.parentGUI = parentGUI; // Phải lưu lại parentGUI để gọi loadAllDataToTable()
-            this.sanPhamCu = sp; // Lưu đối tượng Sản phẩm cũ
+            this.parentGUI = parentGUI;
+            this.sanPhamCu = sp; 
             this.isUpdateMode = isUpdate;
             
             setupUI();
             setupEvents();
            
             if (isUpdateMode) {
-                loadSanPhamCu(sp); // GỌI HÀM LOAD DỮ LIỆU CŨ
+                loadSanPhamCu(sp);
                 btnAction.setText("Cập nhật");
                 ((RoundedButton)btnAction).setBackground(new Color(0, 153, 76)); 
                 txtMaSP.setEditable(false); 
@@ -615,14 +710,19 @@ public class SanPham_GUI extends JPanel implements ActionListener {
             Font font = new Font("Segoe UI", Font.PLAIN, 18);
             Font fontlbl = new Font("Segoe UI", Font.BOLD, 18);
             
-            String[] loaiMonOptions = {"Caffe", "Trà sữa", "Sinh tố", "Bánh ngọt & Ăn kèm", "Đá xay", "Nước ép", "Soda", "Trà trái cây"};
+            DefaultComboBoxModel<String> loaiModel = new DefaultComboBoxModel<>();
+            LoaiSanPham_DAO loaiDao = new LoaiSanPham_DAO();
+            
+            for (LoaiSanPham loai : loaiDao.getAllLoaiSanPham()) {
+                loaiModel.addElement(loai.getTenLoai());
+            }
             
             txtMaSP = new JTextField();
             txtTenSP = new JTextField();
             txtMoTa = new JTextField();
             txtDonGia = new JTextField();
             txtSoLuong = new JTextField();
-            cmbLoaiSP = new JComboBox<>(loaiMonOptions);
+            cmbLoaiSP = new JComboBox<>(loaiModel);
             
             addField(bx, "Mã món ăn:", txtMaSP, sizebtn, fontlbl, font);
             addField(bx, "Tên món ăn:", txtTenSP, sizebtn, fontlbl, font);
@@ -700,22 +800,15 @@ public class SanPham_GUI extends JPanel implements ActionListener {
                     
                     File selectedFile = fileChooser.getSelectedFile();
                     String absolutePath = selectedFile.getAbsolutePath();
-                    String fileName = selectedFile.getName(); // 1. Lấy tên file
-
-                    // 2. Định nghĩa đường dẫn đích (tương đối)
-                    // Đường dẫn tương đối sẽ là "images/TênFile.png"
+                    String fileName = selectedFile.getName(); 
                     String destinationPath = "images" + File.separator + fileName;
-                    
-                    // Tạo đối tượng File cho đường dẫn đích
                     File destinationFile = new File(destinationPath);
                     
                     try {
-                        // 3. THỰC HIỆN COPY FILE: Sao chép ảnh từ vị trí gốc vào thư mục "images"
-                        // Sử dụng Files.copy (cần import java.nio.file.*)
                         java.nio.file.Files.copy(
                             selectedFile.toPath(), 
                             destinationFile.toPath(), 
-                            java.nio.file.StandardCopyOption.REPLACE_EXISTING // Ghi đè nếu đã tồn tại
+                            java.nio.file.StandardCopyOption.REPLACE_EXISTING
                         );
                         
                         this.hinhAnhPath = "images/" + fileName; 
@@ -755,19 +848,10 @@ public class SanPham_GUI extends JPanel implements ActionListener {
             txtMoTa.setText(sp.getMoTa());
             txtDonGia.setText(String.valueOf(sp.getGia()));
             txtSoLuong.setText(String.valueOf(sp.getSoLuong()));
-            
-            // ✅ BƯỚC QUAN TRỌNG NHẤT: LƯU ĐƯỜNG DẪN ẢNH CŨ
             this.hinhAnhPath = sp.getHinhAnh() != null ? sp.getHinhAnh() : "";
-            
-            // Cập nhật hiển thị (ví dụ: hiển thị tên file ảnh hoặc ảnh)
             if (!this.hinhAnhPath.isEmpty()) {
-                // Bạn có thể hiển thị tên file:
                 lblPreview.setText(new File(this.hinhAnhPath).getName());
-                // Hoặc load ảnh nếu bạn đã có logic đó:
-                // lblPreview.setIcon(new ImageIcon(this.hinhAnhPath));
             }
-
-            // Set ComboBox (cần một hàm ánh xạ ngược, giả định bạn có hàm này)
             String tenLoaiCu = sp.getMaLoai().getTenLoai();
             cmbLoaiSP.setSelectedItem(tenLoaiCu);
         }
@@ -850,20 +934,17 @@ public class SanPham_GUI extends JPanel implements ActionListener {
                      JOptionPane.showMessageDialog(this, "⚠️ Đơn giá không hợp lệ!");
                      return;
                  }
-                 int soLuong = 0; // Khởi tạo
+                 int soLuong = 0; 
                  try {
 					String slStr = txtSoLuong.getText().trim();
-                    // 1. CHUYỂN ĐỔI CHUỖI SANG SỐ NGUYÊN và GÁN GIÁ TRỊ
                     soLuong = Integer.parseInt(slStr); 
-                    
-                    // 2. KIỂM TRA GIÁ TRỊ ĐÃ GÁN
 					if( soLuong <= 0) { 
 						JOptionPane.showMessageDialog(this, "⚠️ Số lượng phải là số dương hợp lệ!");
 						return;
 					}
-				} catch (NumberFormatException e) { // SỬ DỤNG NumberFormatException
+				} catch (NumberFormatException e) { 
 					JOptionPane.showMessageDialog(this, "⚠️ Số lượng không hợp lệ (phải là số nguyên)!");
-                    return; // Đảm bảo thoát khi có lỗi format
+                    return;
 				}
 
                  SanPham sp = new SanPham(ma, ten, moTa, donGia, soLuong, new LoaiSanPham(maLoai, tenLoaiMon), hinhAnhPath);

@@ -18,20 +18,20 @@ public class HoaDon_DAO {
 
     
 
-    public boolean addHoaDon(HoaDon hd) {
-        String sql = "INSERT INTO HoaDon VALUES (?, ?, ?, ?, ?)";
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, hd.getMaHD());
-            ps.setDate(2, hd.getNgayLap());
-            ps.setString(3, hd.getMaNV());
-            ps.setString(4, hd.getMaKH());
-            ps.setDouble(5, hd.getTongTien());
-            return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
+//    public boolean addHoaDon(HoaDon hd) {
+//        String sql = "INSERT INTO HoaDon VALUES (?, ?, ?, ?, ?)";
+//        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+//            ps.setString(1, hd.getMaHD());
+//            ps.setDate(2, hd.getNgayLap());
+//            ps.setString(3, hd.getMaNV());
+//            ps.setString(4, hd.getMaKH());
+//            ps.setDouble(5, hd.getTongTien());
+//            return ps.executeUpdate() > 0;
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//            return false;
+//        }
+//    }
 
     public boolean deleteHoaDon(String maHD) {
         String sql = "DELETE FROM HoaDon WHERE maHD=?";
@@ -62,77 +62,77 @@ public class HoaDon_DAO {
         }
 
     }
-    public boolean themHoaDon(HoaDon hd, DefaultTableModel modelChiTiet) {
-        PreparedStatement psHoaDon = null;
-        PreparedStatement psChiTiet = null;
-        boolean success = false;
-        
-        // SQL cho bảng HoaDon (5 cột: maHD, ngayLap, maNV, maKH, tongTien)
-        String sqlInsertHD = "INSERT INTO HoaDon (maHD, ngayLap, maNV, maKH, tongTien) VALUES (?, ?, ?, ?, ?)";
-        
-        // SQL cho bảng ChiTietHoaDon (Giả định: maHD, maMon, soLuong, donGia, thanhTien)
-        String sqlInsertCTHD = "INSERT INTO ChiTietHoaDon (maHD, maMon, soLuong, donGia, thanhTien) VALUES (?, ?, ?, ?, ?)";
-
-        try {
-            conn.setAutoCommit(false); // BẮT ĐẦU TRANSACTION
-
-            // 1. LƯU THÔNG TIN HÓA ĐƠN CHÍNH
-            psHoaDon = conn.prepareStatement(sqlInsertHD);
-            psHoaDon.setString(1, hd.getMaHD());
-            psHoaDon.setDate(2, hd.getNgayLap());
-            psHoaDon.setString(3, hd.getMaNV());
-            psHoaDon.setString(4, hd.getMaKH());
-            psHoaDon.setDouble(5, hd.getTongTien());
-            
-            psHoaDon.executeUpdate();
-
-            // 2. LƯU THÔNG TIN CHI TIẾT HÓA ĐƠN
-            psChiTiet = conn.prepareStatement(sqlInsertCTHD);
-            String maHD = hd.getMaHD();
-
-            // Lặp qua từng dòng trong modelChiTiet (modelMonAnGoc)
-            for (int i = 0; i < modelChiTiet.getRowCount(); i++) {
-                // Giả định modelMonAnGoc có cấu trúc: MaMon(0), Tên món(1), SL(2), Đơn giá(3), Thành tiền(4)
-                String maMon = modelChiTiet.getValueAt(i, 0).toString();
-                // Ép kiểu an toàn hơn khi lấy từ JTable
-                int soLuong = Integer.parseInt(modelChiTiet.getValueAt(i, 2).toString()); 
-                double donGia = (double) modelChiTiet.getValueAt(i, 3);
-                double thanhTien = (double) modelChiTiet.getValueAt(i, 4);
-
-                psChiTiet.setString(1, maHD);
-                psChiTiet.setString(2, maMon);
-                psChiTiet.setInt(3, soLuong);
-                psChiTiet.setDouble(4, donGia);
-                psChiTiet.setDouble(5, thanhTien);
-                
-                psChiTiet.addBatch(); // Thêm vào batch
-            }
-            
-            psChiTiet.executeBatch(); // Thực thi lưu chi tiết
-            
-            conn.commit(); // THÀNH CÔNG: Commit toàn bộ thay đổi
-            success = true;
-
-        } catch (SQLException e) {
-            try {
-                if (conn != null)
-                    conn.rollback(); // THẤT BẠI: Hủy bỏ tất cả thay đổi
-            } catch (SQLException ex) {
-                ex.printStackTrace();
-            }
-            System.err.println("Lỗi CSDL khi thêm hóa đơn và chi tiết: " + e.getMessage());
-            e.printStackTrace();
-        } finally {
-            try {
-                if (psHoaDon != null) psHoaDon.close();
-                if (psChiTiet != null) psChiTiet.close();
-                if (conn != null) conn.setAutoCommit(true); // Trả lại chế độ mặc định
-            } catch (SQLException ex) {
-                ex.printStackTrace();
-            }
-        }
-        return success;
-    }
+//    public boolean themHoaDon(HoaDon hd, DefaultTableModel modelChiTiet) {
+//        PreparedStatement psHoaDon = null;
+//        PreparedStatement psChiTiet = null;
+//        boolean success = false;
+//        
+//        // SQL cho bảng HoaDon (5 cột: maHD, ngayLap, maNV, maKH, tongTien)
+//        String sqlInsertHD = "INSERT INTO HoaDon (maHD, ngayLap, maNV, maKH, tongTien) VALUES (?, ?, ?, ?, ?)";
+//        
+//        // SQL cho bảng ChiTietHoaDon (Giả định: maHD, maMon, soLuong, donGia, thanhTien)
+//        String sqlInsertCTHD = "INSERT INTO ChiTietHoaDon (maHD, maMon, soLuong, donGia, thanhTien) VALUES (?, ?, ?, ?, ?)";
+//
+//        try {
+//            conn.setAutoCommit(false); // BẮT ĐẦU TRANSACTION
+//
+//            // 1. LƯU THÔNG TIN HÓA ĐƠN CHÍNH
+//            psHoaDon = conn.prepareStatement(sqlInsertHD);
+//            psHoaDon.setString(1, hd.getMaHD());
+//            psHoaDon.setDate(2, hd.getNgayLap());
+//            psHoaDon.setString(3, hd.getMaNV());
+//            psHoaDon.setString(4, hd.getMaKH());
+//            psHoaDon.setDouble(5, hd.getTongTien());
+//            
+//            psHoaDon.executeUpdate();
+//
+//            // 2. LƯU THÔNG TIN CHI TIẾT HÓA ĐƠN
+//            psChiTiet = conn.prepareStatement(sqlInsertCTHD);
+//            String maHD = hd.getMaHD();
+//
+//            // Lặp qua từng dòng trong modelChiTiet (modelMonAnGoc)
+//            for (int i = 0; i < modelChiTiet.getRowCount(); i++) {
+//                // Giả định modelMonAnGoc có cấu trúc: MaMon(0), Tên món(1), SL(2), Đơn giá(3), Thành tiền(4)
+//                String maMon = modelChiTiet.getValueAt(i, 0).toString();
+//                // Ép kiểu an toàn hơn khi lấy từ JTable
+//                int soLuong = Integer.parseInt(modelChiTiet.getValueAt(i, 2).toString()); 
+//                double donGia = (double) modelChiTiet.getValueAt(i, 3);
+//                double thanhTien = (double) modelChiTiet.getValueAt(i, 4);
+//
+//                psChiTiet.setString(1, maHD);
+//                psChiTiet.setString(2, maMon);
+//                psChiTiet.setInt(3, soLuong);
+//                psChiTiet.setDouble(4, donGia);
+//                psChiTiet.setDouble(5, thanhTien);
+//                
+//                psChiTiet.addBatch(); // Thêm vào batch
+//            }
+//            
+//            psChiTiet.executeBatch(); // Thực thi lưu chi tiết
+//            
+//            conn.commit(); // THÀNH CÔNG: Commit toàn bộ thay đổi
+//            success = true;
+//
+//        } catch (SQLException e) {
+//            try {
+//                if (conn != null)
+//                    conn.rollback(); // THẤT BẠI: Hủy bỏ tất cả thay đổi
+//            } catch (SQLException ex) {
+//                ex.printStackTrace();
+//            }
+//            System.err.println("Lỗi CSDL khi thêm hóa đơn và chi tiết: " + e.getMessage());
+//            e.printStackTrace();
+//        } finally {
+//            try {
+//                if (psHoaDon != null) psHoaDon.close();
+//                if (psChiTiet != null) psChiTiet.close();
+//                if (conn != null) conn.setAutoCommit(true); // Trả lại chế độ mặc định
+//            } catch (SQLException ex) {
+//                ex.printStackTrace();
+//            }
+//        }
+//        return success;
+//    }
     public int getSoDonHomNay() {
         int soDon = 0;
 
@@ -199,7 +199,7 @@ public class HoaDon_DAO {
                     rs.getString("maKH"),
                     rs.getString("maKM"),
                     rs.getString("maDatBan"),
-                    rs.getString("ngayLap")
+                    rs.getDate("ngayLap")
                 ));
             }
 
@@ -219,7 +219,7 @@ public class HoaDon_DAO {
              PreparedStatement ps = con.prepareStatement(sql)) {
 
             ps.setString(1, hd.getMaHD());
-            ps.setString(2, hd.getNgayLap());
+            ps.setDate(2, hd.getNgayLap());
             ps.setString(3, hd.getMaKH());
             ps.setString(4, hd.getMaNV());
             ps.setString(5, hd.getMaKM());
@@ -243,7 +243,7 @@ public class HoaDon_DAO {
         try (Connection con = DBconnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
 
-            ps.setString(1, hd.getNgayLap());
+            ps.setDate(1, hd.getNgayLap());
             ps.setString(2, hd.getMaKH());
             ps.setString(3, hd.getMaNV());
             ps.setString(4, hd.getMaKM());
@@ -289,7 +289,7 @@ public class HoaDon_DAO {
                     rs.getString("maKH"),
                     rs.getString("maKM"),
                     rs.getString("maDatBan"),
-                    rs.getString("ngayLap")
+                    rs.getDate("ngayLap")
                 );
             }
 

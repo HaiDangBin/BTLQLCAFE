@@ -10,6 +10,7 @@ import java.awt.Graphics2D;
 import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.RenderingHints;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -35,7 +36,7 @@ public class GoiMon_GUI extends JDialog {
     private final DecimalFormat df = new DecimalFormat("#,###");
     private Ban_DAO banDAO; 
 	private Ban banHienTai;
-	private DonDatBan_DAO ddbDAO; // ⭐ THÊM
+	private DonDatBan_DAO ddbDAO; 
 
     private final Vector<Vector<Object>> orderData = new Vector<>();
 	private JTextField txtTimKiem;
@@ -67,14 +68,13 @@ public class GoiMon_GUI extends JDialog {
     	super(parent, "Gọi Món Mới cho Bàn " + maBan, true);
         this.maBan = maBan;
         this.banDAO = new Ban_DAO();
-        this.tenKhachHang = tenKH; // Gán giá trị
+        this.tenKhachHang = tenKH; 
         this.sdtKhachHang = sdt;
         this.ddbDAO = new DonDatBan_DAO();
         this.setUndecorated(true);
         try {
             this.banHienTai = banDAO.layBanTheoMa(this.maBan);
-            
-            // ⭐ 3. KIỂM TRA ĐIỀU KIỆN NULL SAU KHI TRUY VẤN
+
             if (this.banHienTai == null) {
                
                 JOptionPane.showMessageDialog(parent, 
@@ -91,13 +91,13 @@ public class GoiMon_GUI extends JDialog {
             this.dispose();
             return;
         }
-        java.awt.Toolkit toolkit = java.awt.Toolkit.getDefaultToolkit();
-        
-        java.awt.Dimension screenSize = toolkit.getScreenSize();
-        this.setSize(screenSize.width, screenSize.height);
-        this.setLocation(0, 0);
-        
-        // 1. Khởi tạo các đối tượng và DAO
+        int dialogWidth = 1525; 
+        int dialogHeight = 800; 
+        setSize(dialogWidth, dialogHeight); 
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        int x = (screenSize.width - dialogWidth) / 2;
+        int y = (screenSize.height - dialogHeight) / 2; 
+        setLocation(x, y);
         this.sanPhamDAO = new SanPham_DAO(); 
         this.menuMap = getMonAnList(); 
         
@@ -112,7 +112,6 @@ public class GoiMon_GUI extends JDialog {
             }
         };
         this.table = new JTable(orderModel);
-        // Thiết lập cột ẩn luôn
     	table.getColumnModel().getColumn(0).setPreferredWidth(0);
     	table.getColumnModel().getColumn(0).setMinWidth(0);
     	table.getColumnModel().getColumn(0).setMaxWidth(0);
@@ -172,13 +171,13 @@ public class GoiMon_GUI extends JDialog {
         
         pWest.add(scrollPane, BorderLayout.CENTER);
 
-        // -- 2c. Footer pWest (Quan trọng: Khởi tạo các button ở đây) --
+        // -- 2c. Footer pWest  --
         JPanel pSouth = new JPanel(new BorderLayout());
         pSouth.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         
         JPanel pFooterTop = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
         
-        // 1. Nút thanh toán (Khởi tạo biến btnTienMat và btnChuyenKhoan)
+        // 1. Nút thanh toán
         btnTienMat = new RoundedButton("Tiền mặt", new Color(224,224,224), new Dimension(250,50));
         btnChuyenKhoan = new RoundedButton("Chuyển khoản", new Color(224,224,224), new Dimension(250,50));
         btnTienMat.setFont(new Font("Segoe UI", Font.BOLD, 20));
@@ -221,7 +220,7 @@ public class GoiMon_GUI extends JDialog {
         wrap.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
         wrap.setBackground(Color.WHITE);
         
-        add(wrap, BorderLayout.WEST); // Thêm pWest vào frame
+        add(wrap, BorderLayout.WEST); 
 
         // ---------------------- 3. PANEL CENTER (Bảng thực đơn) ----------------------
         JPanel pCenter = createMenuPanel(); 
@@ -276,16 +275,11 @@ public class GoiMon_GUI extends JDialog {
                 ex.printStackTrace();
             }
             itemPanel.add(lblImage, BorderLayout.CENTER);
-
-            // 2. Tên và Giá
             JLabel lblTenMon = new JLabel("<html><center><b>" + sp.getTenSP() + "</b><br>" + df.format(sp.getGia()) + "₫</center></html>");
             lblTenMon.setHorizontalAlignment(SwingConstants.CENTER);
-            // SỬA LỖI 4: Kích thước Text (chiều rộng) phải khớp
             lblTenMon.setPreferredSize(new Dimension(ITEM_WIDTH, TEXT_HEIGHT)); 
             lblTenMon.setFont(new Font("Segoe UI", Font.PLAIN, 14));
             itemPanel.add(lblTenMon, BorderLayout.SOUTH);
-
-            // 3. Thêm sự kiện click để gọi món
             itemPanel.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseClicked(MouseEvent e) {
@@ -333,12 +327,11 @@ public class GoiMon_GUI extends JDialog {
             }
         }
         Vector<Object> rowData = new Vector<>();
-        rowData.add(sp.getMaSP()); // Cột 0: Mã SP (ẩn)
-        rowData.add(sp.getTenSP()); // Cột 1: Tên
-        rowData.add(1); // Cột 2: SL = 1 (Integer)
-        rowData.add(df.format(sp.getGia())); // Cột 3: Đơn giá
-        rowData.add(df.format(sp.getGia())); // Cột 4: Thành tiền = Đơn giá
-        
+        rowData.add(sp.getMaSP()); 
+        rowData.add(sp.getTenSP()); 
+        rowData.add(1); 
+        rowData.add(df.format(sp.getGia())); 
+        rowData.add(df.format(sp.getGia())); 
         orderModel.addRow(rowData);
         recalculateTotal();
     }
@@ -393,15 +386,13 @@ public class GoiMon_GUI extends JDialog {
         if (soLuongNguoiDatCoc < 0) {
             soLuongNguoiDatCoc = 0;
         }
-        String maKHHienTai = "KHL00"; // Mặc định là Khách lẻ
+        String maKHHienTai = "KHL00"; 
 
         try {
-            // Giả sử có hàm tìm đơn đặt bàn đang hoạt động theo mã bàn
             DonDatBan ddb = ddbDAO.getDonDatBanActiveByMaBan(this.maBan);
             
             if (ddb != null && ddb.getMaKH() != null) {
                 maKHHienTai = ddb.getMaKH().getMaKH();
-                // Cập nhật thông tin khách hàng (chỉ để hiển thị nếu cần)
                 this.tenKhachHang = ddb.getMaKH().getTenKH();
                 this.sdtKhachHang = ddb.getMaKH().getsDT();
             
@@ -416,26 +407,19 @@ public class GoiMon_GUI extends JDialog {
         }
         JFrame ownerFrame = (JFrame) SwingUtilities.getWindowAncestor(this.getParent());
         JDialog thanhToanDialog = new JDialog(ownerFrame, "THANH TOÁN HÓA ĐƠN BÀN " + this.maBan, true);
-        // 2. Xác định phương thức thanh toán
         boolean isChuyenKhoan = phuongThucThanhToan.equals("Chuyển khoản");
         String maNVHienTai = "NV001";
-        
-        // 4. Mở giao diện chi tiết hóa đơn 
         ChiTietHoaDonSanPham_GUI chiTietPanel = new ChiTietHoaDonSanPham_GUI(
-                this,                           // 1. Đối tượng GoiMon_GUI (this)
-                orderModel,                     // 2. DefaultTableModel
-                isChuyenKhoan,                  // 3. boolean
-                this.banHienTai.getMaBan(),     // 4. String maBan (sử dụng .getMaBan())
-                maNVHienTai,                    // 5. String maNV
-                maKHHienTai                     // 6. String maKH
+                this,                         
+                orderModel,                    
+                isChuyenKhoan,                  
+                this.banHienTai.getMaBan(),    
+                maNVHienTai,                    
+                maKHHienTai                     
             );
-        
-        // 5. Đóng cửa sổ GoiMon_GUI hiện tại
         thanhToanDialog.add(chiTietPanel);
-        thanhToanDialog.pack(); // Tự động căn chỉnh
+        thanhToanDialog.pack();
         thanhToanDialog.setLocationRelativeTo(ownerFrame);
-        
-        // 6. Hiển thị dialog Chi tiết hóa đơn
         thanhToanDialog.setVisible(true);
     }
     public void clearOrderTable1() {
@@ -444,7 +428,6 @@ public class GoiMon_GUI extends JDialog {
 		recalculateTotal();
 	}
     
-
     class ButtonEditor extends javax.swing.AbstractCellEditor implements javax.swing.table.TableCellEditor, ActionListener {
 
         private final ButtonPanel editorComponent;
@@ -483,12 +466,11 @@ public class GoiMon_GUI extends JDialog {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            // Lấy giá trị SL hiện tại từ cell
             int currentSL = 0;
             try {
                 currentSL = Integer.parseInt(originalValue.toString());
             } catch (Exception ex) {
-                currentSL = 1; // Mặc định nếu có lỗi
+                currentSL = 1; 
             }
             
             double donGia = 0;
@@ -518,19 +500,11 @@ public class GoiMon_GUI extends JDialog {
                     }
                 }
             }
-
-            // Cập nhật lại bảng
             table.setValueAt(currentSL, row, 2);
             double newThanhTien = currentSL * donGia;
             table.setValueAt(df.format(newThanhTien), row, 4);
-
-            // Cập nhật tổng tiền
             recalculateTotal(); 
-
-            // Cập nhật hiển thị số lượng ngay trong cell
             editorComponent.setQuantity(currentSL);
-
-            // Dừng chỉnh sửa sau khi hoàn tất cập nhật
             fireEditingStopped();
         }
     }
@@ -655,7 +629,7 @@ public class GoiMon_GUI extends JDialog {
 	        private final JLabel lblSL;
 	        
 	        public ButtonPanel() {
-	            setLayout(new FlowLayout(FlowLayout.CENTER, 5, 2)); // Căn giữa, khoảng cách 5
+	            setLayout(new FlowLayout(FlowLayout.CENTER, 5, 2)); 
 	            setOpaque(true);
 	            
 	            // Nút giảm

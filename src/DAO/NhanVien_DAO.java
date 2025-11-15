@@ -2,73 +2,111 @@ package DAO;
 
 import java.sql.*;
 import java.util.ArrayList;
-import Entity.NhanVien;
+
 import connectDB.DBconnection;
+import Entity.ChucVu;
+import Entity.NhanVien;
 
 public class NhanVien_DAO {
-    private Connection conn;
 
-    public NhanVien_DAO() {
-        conn = DBconnection.getConnection();
-    }
-
-    public ArrayList<NhanVien> getAllNhanVien() {
+    public ArrayList<NhanVien> getAll() {
         ArrayList<NhanVien> list = new ArrayList<>();
-        String sql = "SELECT maNV, tenNV, sDT, maLoai FROM NhanVien";
-        try (Statement st = conn.createStatement();
-             ResultSet rs = st.executeQuery(sql)) {
-
-            while (rs.next()) {
-                NhanVien nv = new NhanVien(
-                    rs.getString("maNV"),
-                    rs.getString("tenNV"),
-                    rs.getString("sDT"),
-                    rs.getString("maLoai")
-                );
-                list.add(nv);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return list;
-    }
-    public NhanVien getNhanVienByMaNV(String maNV) {
-        NhanVien nv = null;
-        Connection con = DBconnection.getConnection();
-        PreparedStatement stmt = null;
-        ResultSet rs = null;
 
         try {
-            // Lấy các trường thông tin cần thiết của Nhân viên
-            String sql = "SELECT maNV, tenNV, sDT, maLoai FROM NhanVien WHERE maNV = ?";
-            stmt = con.prepareStatement(sql);
-            stmt.setString(1, maNV);
-            
-            rs = stmt.executeQuery();
+            Connection con = DBconnection.getConnection();
+            String sql = """
+                    SELECT nv.*, cv.tenLoai 
+                    FROM NhanVien nv 
+                    JOIN LoaiChucVu cv ON nv.maLoai = cv.maLoai
+                    """;
 
-            if (rs.next()) {
-                // ⭐ KHỞI TẠO ĐỐI TƯỢNG NHANVIEN
-                // Lưu ý: Cần đảm bảo constructor này phù hợp với Entity NhanVien của bạn
-                nv = new NhanVien(
-                    rs.getString("maNV"),
-                    rs.getString("tenNV"),
-                    rs.getString("sDT"),
-                    rs.getString("maLoai")
-                    // Thêm các trường khác nếu Entity NhanVien của bạn có nhiều hơn
+            PreparedStatement ps = con.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                ChucVu cv = new ChucVu(
+                        rs.getString("maLoai"),
+                        rs.getString("tenLoai")
                 );
+
+                NhanVien nv = new NhanVien(
+                        rs.getString("maNV"),
+                        rs.getString("tenNV"),
+                        rs.getString("sDT"),
+                        rs.getString("diaChi"),
+                        rs.getString("ngaySinh"),
+                        cv
+                );
+
+                list.add(nv);
             }
-        } catch (SQLException e) {
-            System.err.println("Lỗi khi lấy thông tin Nhân viên: " + e.getMessage());
+
+        } catch (Exception e) {
             e.printStackTrace();
-        } finally {
-            try {
-                if (rs != null) rs.close();
-                if (stmt != null) stmt.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
         }
-        return nv;
+
+        return list;
+    }
+
+    public boolean add(NhanVien nv) {
+        try {
+            Connection con = DBconnection.getConnection();
+            String sql = "INSERT INTO NhanVien VALUES (?,?,?,?,?,?)";
+
+            PreparedStatement ps = con.prepareStatement(sql);
+            ps.setString(1, nv.getMaNV());
+            ps.setString(2, nv.getTenNV());
+            ps.setString(3, nv.getSdt());
+            ps.setString(4, nv.getDiaChi());
+            ps.setString(5, nv.getNgaySinh());
+            ps.setString(6, nv.getChucVu().getMaLoai());
+
+            return ps.executeUpdate() > 0;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean update(NhanVien nv) {
+        try {
+            Connection con = DBconnection.getConnection();
+            String sql = """
+                UPDATE NhanVien SET 
+                    tenNV=?, sDT=?, diaChi=?, ngaySinh=?, maLoai=?
+                WHERE maNV=?
+                """;
+
+            PreparedStatement ps = con.prepareStatement(sql);
+
+            ps.setString(1, nv.getTenNV());
+            ps.setString(2, nv.getSdt());
+            ps.setString(3, nv.getDiaChi());
+            ps.setString(4, nv.getNgaySinh());
+            ps.setString(5, nv.getChucVu().getMaLoai());
+            ps.setString(6, nv.getMaNV());
+
+            return ps.executeUpdate() > 0;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean delete(String ma) {
+        try {
+            Connection con = DBconnection.getConnection();
+            String sql = "DELETE FROM NhanVien WHERE maNV=?";
+            PreparedStatement ps = con.prepareStatement(sql);
+            ps.setString(1, ma);
+
+            return ps.executeUpdate() > 0;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 }
-

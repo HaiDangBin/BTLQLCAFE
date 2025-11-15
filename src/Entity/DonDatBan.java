@@ -1,6 +1,8 @@
 package Entity;
 
 import java.sql.Date;
+import java.sql.Time;
+import java.time.LocalDateTime;
 
 public class DonDatBan {
 	private String maDatBan;

@@ -18,6 +18,12 @@ public class Ban {
 	public Ban() {
 		super();
 	}
+	
+
+	public Ban(String maBan) {
+		super();
+		this.maBan = maBan;
+	}
 
 	public String getMaBan() {
 		return maBan;
