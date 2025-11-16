@@ -9,6 +9,7 @@ public class HoaDon {
     private String maDatBan;
     private String maKH;
     private Date ngayLap;
+    private double tongTien;
 
     public HoaDon() {}
 
@@ -38,6 +39,8 @@ public class HoaDon {
 
     public Date getNgayLap() { return ngayLap; }
     public void setNgayLap(Date ngayLap) { this.ngayLap = ngayLap; }
+    public double getTongTien() { return tongTien; }
+    public void setTongTien(double tongTien) { this.tongTien = tongTien; }
 
 
 }

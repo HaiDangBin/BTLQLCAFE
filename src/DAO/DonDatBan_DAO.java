@@ -227,7 +227,48 @@ public class DonDatBan_DAO {
 	        return false;
 	    }
 	}
+	public boolean capNhatTrangThai(String maDatBan, String trangThaiMoi) {
+	    String sql = "UPDATE DonDatBan SET trangThai = ? WHERE maDatBan = ?";
+
+	    try (Connection con = DBconnection.getConnection();
+	         PreparedStatement ps = con.prepareStatement(sql)) {
+
+	        ps.setString(1, trangThaiMoi);
+	        ps.setString(2, maDatBan);
+
+	        return ps.executeUpdate() > 0;
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+
+	    return false;
+	}
 	public DonDatBan getDonDatBanByMaBan1(String maBan) {
+	    String sql = "SELECT * FROM DonDatBan WHERE maBan = ? AND trangThai = 'Đã đặt'";
+	    try (Connection con = DBconnection.getConnection();
+	         PreparedStatement ps = con.prepareStatement(sql)) {
+	        ps.setString(1, maBan);
+	        ResultSet rs = ps.executeQuery();
+	        if (rs.next()) {
+	            DonDatBan ddb = new DonDatBan();
+	            ddb.setMaDatBan(rs.getString("maDatBan"));
+	            ddb.setNgayDat(rs.getDate("ngayDat"));
+	            ddb.setSoLuongKhach(rs.getInt("soLuongKhach"));
+	            ddb.setTrangThai(rs.getString("trangThai"));
+
+	            KhachHang_DAO khDAO = new KhachHang_DAO();
+	            KhachHang kh = khDAO.getKhachHangByMa(rs.getString("maKH"));
+	            ddb.setMaKH(kh);
+
+	            return ddb;
+	        }
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+	    return null;
+	}
+	public DonDatBan getDonDatBanByMaBan11(String maBan) {
 	    String sql = """
 	        SELECT TOP 1
 	            ddb.maDatBan, ddb.ngayDat, ddb.soLuongKhach, ddb.trangThai,
@@ -518,7 +559,7 @@ public class DonDatBan_DAO {
 	            ddb.setTrangThai(rs.getString("trangThai"));
 	            ddb.setNgayDat(rs.getDate("ngayDat")); 
 	        } else {
-	             System.out.println("Không tìm thấy Đơn Đặt Bàn đang hoạt động. Dùng Mã KH mặc định: KHL00");
+	             System.out.println("Không tìm thấy Đơn Đặt Bàn đang hoạt động. Dùng Mã KH mặc định: KH000");
 	        }
 
 	    } catch (SQLException e) {

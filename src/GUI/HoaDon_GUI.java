@@ -234,6 +234,9 @@ public class HoaDon_GUI extends JPanel {
             e.printStackTrace();
         }
     }
+    public void reloadHoaDon() {
+        loadHoaDon();
+    }
 
     // ====================== SEARCH ======================
     private void searchHoaDon() {
@@ -470,6 +473,24 @@ public class HoaDon_GUI extends JPanel {
             loadHoaDon();
         } else {
             JOptionPane.showMessageDialog(this, "Xóa thất bại!");
+        }
+    }
+    private void loadHoaDon1() {
+        modelHD.setRowCount(0);
+        List<HoaDon> ds = hdDAO.getAll();
+        ChiTietHoaDon_DAO ctDAO = new ChiTietHoaDon_DAO();
+
+        for (HoaDon hd : ds) {
+            double tong = ctDAO.getTongTien(hd.getMaHD());
+            modelHD.addRow(new Object[]{
+                hd.getMaHD(),
+                hd.getMaNV(),
+                hd.getMaKH(),
+                hd.getMaKM(),
+                hd.getMaDatBan(),
+                hd.getNgayLap(),
+                String.format("%,.0f", tong)
+            });
         }
     }
 

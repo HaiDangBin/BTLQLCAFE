@@ -223,4 +223,21 @@ public class Ban_DAO {
         }
         return ban;
     }
+    public boolean capNhatTrangThaiBan(String maBan, String trangThai) {
+        String sql = "UPDATE Ban SET trangThai = ? WHERE maBan = ?";
+
+        try (Connection con = DBconnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setString(1, trangThai);
+            ps.setString(2, maBan);
+
+            return ps.executeUpdate() > 0;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
 }

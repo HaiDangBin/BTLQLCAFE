@@ -134,6 +134,77 @@ public class HoaDon_DAO {
 //        }
 //        return success;
 //    }
+    @SuppressWarnings("finally")
+	public boolean themHoaDon(HoaDon hd, DefaultTableModel modelChiTiet) {
+        PreparedStatement psHoaDon = null;
+        PreparedStatement psChiTiet = null;
+        boolean success = false;
+        
+        // SỬA LẠI SQL CHO KHỚP VỚI ENTITY HOADON.JAVA
+        // (maHD, ngayLap, maNV, maKH, maDatBan, maKM, tongTien)
+        String sqlInsertHD = "INSERT INTO HoaDon (maHD, ngayLap, maNV, maKH, maDatBan, maKM, tongTien) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        
+        // SỬA LẠI SQL CHO KHỚP VỚI ENTITY CHITIETHOADON.JAVA
+        // (maHD, maSP, soLuongSP, donGia)
+        String sqlInsertCTHD = "INSERT INTO ChiTietHoaDon (maHD, maSP, soLuongSP, donGia) VALUES (?, ?, ?, ?)";
+
+        try {
+            conn.setAutoCommit(false); // BẮT ĐẦU TRANSACTION
+
+            // 1. LƯU THÔNG TIN HÓA ĐƠN CHÍNH
+            psHoaDon = conn.prepareStatement(sqlInsertHD);
+            psHoaDon.setString(1, hd.getMaHD());
+            psHoaDon.setDate(2, hd.getNgayLap());
+            psHoaDon.setString(3, hd.getMaNV());
+            psHoaDon.setString(4, hd.getMaKH());
+            psHoaDon.setString(5, hd.getMaDatBan()); // THÊM
+            psHoaDon.setString(6, hd.getMaKM());     // THÊM
+            psHoaDon.setDouble(7, hd.getTongTien()); // VỊ TRÍ THAY ĐỔI
+            
+            psHoaDon.executeUpdate();
+
+            // 2. LƯU THÔNG TIN CHI TIẾT HÓA ĐƠN
+            psChiTiet = conn.prepareStatement(sqlInsertCTHD);
+            String maHD = hd.getMaHD();
+
+            for (int i = 0; i < modelChiTiet.getRowCount(); i++) {
+                String maMon = modelChiTiet.getValueAt(i, 0).toString(); // (modelMonAnGoc cột 0 là MaMon/MaSP)
+                int soLuong = Integer.parseInt(modelChiTiet.getValueAt(i, 2).toString()); 
+                double donGia = (double) modelChiTiet.getValueAt(i, 3);
+                
+                psChiTiet.setString(1, maHD);
+                psChiTiet.setString(2, maMon);    // Đảm bảo tên cột là 'maSP'
+                psChiTiet.setInt(3, soLuong);     // Đảm bảo tên cột là 'soLuongSP'
+                psChiTiet.setDouble(4, donGia);
+                
+                psChiTiet.addBatch(); 
+            }
+            
+            psChiTiet.executeBatch(); 
+            
+            conn.commit(); 
+            success = true;
+
+        } catch (SQLException e) {
+            try {
+                if (conn != null)
+                    conn.rollback(); 
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
+            System.err.println("Lỗi CSDL khi thêm hóa đơn và chi tiết: " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+        	try {
+              if (psHoaDon != null) psHoaDon.close();
+              if (psChiTiet != null) psChiTiet.close();
+              if (conn != null) conn.setAutoCommit(true); // Trả lại chế độ mặc định
+          } catch (SQLException ex) {
+              ex.printStackTrace();
+        }
+        return success;
+    }
+   }
     public int getSoDonHomNay() {
         int soDon = 0;
 
@@ -352,6 +423,26 @@ public class HoaDon_DAO {
             e.printStackTrace();
         }
         return null;
+    }
+    public boolean insert1(HoaDon hd) {
+        String sql = """
+            INSERT INTO HoaDon (maHD, ngayLap, maKH, maNV, maKM, maDatBan)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """; // Không có tongTien
+
+        try (Connection con = DBconnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, hd.getMaHD());
+            ps.setDate(2, hd.getNgayLap());
+            ps.setString(3, hd.getMaKH());
+            ps.setString(4, hd.getMaNV());
+            ps.setString(5, hd.getMaKM());
+            ps.setString(6, hd.getMaDatBan());
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
 }
