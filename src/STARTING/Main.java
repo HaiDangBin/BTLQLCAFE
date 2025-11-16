@@ -205,11 +205,15 @@ public class Main extends JFrame implements ActionListener {
             	setPanel(new KhachHang_GUI());
             } else if( o == mnuHoaDon) {
             	setPanel(new HoaDon_GUI());
-//            } else if( o ==mnuNhanVien) {
-//            	setPanel(new NhanVien_GUI());
+            } else if( o ==mnuNhanVien) {
+            	setPanel(new NhanVien_GUI());
             } else if( o ==mnuDonDatBan) {
             	setPanel(new DonDatBan_GUI());
             }
+            else if (o == mnuTaiKhoan) {
+                setPanel(new TaiKhoan_GUI());
+            }
+
             
             
             else if (o == mnuThoat) {

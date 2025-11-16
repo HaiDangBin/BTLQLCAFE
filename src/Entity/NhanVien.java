@@ -7,6 +7,7 @@ public class NhanVien {
     private String diaChi;
     private String ngaySinh;
     private ChucVu chucVu;
+    private String email;
 
     public NhanVien(String maNV, String tenNV, String sdt, String diaChi, String ngaySinh, ChucVu chucVu) {
         this.maNV = maNV;
@@ -18,6 +19,12 @@ public class NhanVien {
     }
 
     public NhanVien() {}
+    public NhanVien(String maNV, String tenNV, String sDT, String email) {
+        this.maNV = maNV;
+        this.tenNV = tenNV;
+        this.sdt = sDT;
+        this.email = email;
+    }
 
     public String getMaNV() { return maNV; }
     public void setMaNV(String maNV) { this.maNV = maNV; }

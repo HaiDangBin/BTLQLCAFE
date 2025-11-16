@@ -1,5 +1,11 @@
 package Entity;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+
+import connectDB.DBconnection;
+
 public class KhachHang {
     private String maKH;
     private String tenKH;
@@ -30,4 +36,26 @@ public class KhachHang {
     public void setTenKH(String tenKH) { this.tenKH = tenKH; }
     public void setsDT(String sDT) { this.sDT = sDT; }
     public void setEmail(String email) { this.email = email; }
+    public boolean createKhachHang(KhachHang kh) {
+        String sql = """
+            INSERT INTO KhachHang (maKH, tenKH, sDT)
+            VALUES (?, ?, ?)
+        """;
+
+        try (Connection con = DBconnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setString(1, kh.getMaKH());
+            ps.setString(2, kh.getTenKH());
+            ps.setString(3, kh.getsDT());
+
+            return ps.executeUpdate() > 0;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
 }
+

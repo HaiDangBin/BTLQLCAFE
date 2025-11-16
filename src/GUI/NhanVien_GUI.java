@@ -1,7 +1,9 @@
 package GUI;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.JTableHeader;
 
 import DAO.NhanVien_DAO;
 import DAO.ChucVu_DAO;
@@ -30,9 +32,7 @@ public class NhanVien_GUI extends JPanel {
     private NhanVien_DAO nvDAO = new NhanVien_DAO();
     private ChucVu_DAO cvDAO = new ChucVu_DAO();
 
-    public NhanVien_GUI(TaiKhoan tk) {
-        this.tkLogin = tk;
-
+    public NhanVien_GUI() {
         setLayout(new BorderLayout());
         setBackground(Color.WHITE);
 
@@ -48,31 +48,30 @@ public class NhanVien_GUI extends JPanel {
         addEventHandlers();
     }
 
+    // ===================== TIÊU ĐỀ =========================
     private JPanel buildTitlePanel() {
         JPanel pn = new JPanel(new BorderLayout());
         pn.setBorder(BorderFactory.createEmptyBorder(8, 10, 8, 10));
-
-        JButton btnBack = new JButton("← Quay lại");
-        btnBack.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        pn.add(btnBack, BorderLayout.WEST);
+        pn.setBackground(new Color(0, 153, 153)); // xanh ngọc
 
         JLabel lbl = new JLabel("QUẢN LÝ NHÂN VIÊN", SwingConstants.CENTER);
         lbl.setFont(new Font("Segoe UI", Font.BOLD, 22));
+        lbl.setForeground(Color.WHITE);
         pn.add(lbl, BorderLayout.CENTER);
-
-        // sự kiện quay lại, chỉ callback
-        btnBack.addActionListener(e -> {
-            SwingUtilities.getWindowAncestor(this).dispose();
-        });
 
         return pn;
     }
 
+    // ===================== FORM INPUT =========================
     private JPanel buildFormPanel() {
         JPanel wrapper = new JPanel(new BorderLayout());
         wrapper.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+        wrapper.setBackground(Color.WHITE);
+        wrapper.setOpaque(true);
 
         JPanel form = new JPanel(new GridLayout(3, 4, 15, 15));
+        form.setBackground(new Color(245, 245, 245));
+        form.setOpaque(true);
 
         form.add(new JLabel("Mã nhân viên:"));
         txtMaNV = new JTextField();
@@ -113,7 +112,10 @@ public class NhanVien_GUI extends JPanel {
 
         wrapper.add(form, BorderLayout.CENTER);
 
+        // ===================== BUTTON PANEL =========================
         JPanel pnBtn = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 5));
+        pnBtn.setBackground(new Color(245, 245, 245));
+        pnBtn.setOpaque(true);
 
         btnThem = new JButton("Thêm");
         btnSua = new JButton("Sửa");
@@ -122,6 +124,19 @@ public class NhanVien_GUI extends JPanel {
         btnTim = new JButton("Tìm");
         btnLoad = new JButton("Tải lại");
         txtTim = new JTextField(15);
+
+        // Style cho button
+        Color btnColor = new Color(0, 153, 153);
+        Color btnText = Color.WHITE;
+        JButton[] buttons = {btnThem, btnSua, btnXoa, btnClear, btnTim, btnLoad};
+
+        for (JButton b : buttons) {
+            b.setBackground(btnColor);
+            b.setForeground(btnText);
+            b.setFocusPainted(false);
+            b.setOpaque(true);
+            b.setBorder(BorderFactory.createLineBorder(new Color(0, 120, 120)));
+        }
 
         pnBtn.add(btnThem);
         pnBtn.add(btnSua);
@@ -137,9 +152,11 @@ public class NhanVien_GUI extends JPanel {
         return wrapper;
     }
 
+    // ===================== BẢNG NHÂN VIÊN =========================
     private JPanel buildTablePanel() {
         JPanel pn = new JPanel(new BorderLayout());
         pn.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
+        pn.setBackground(Color.WHITE);
 
         String[] cols = {"Mã NV", "Tên NV", "SĐT", "Địa chỉ", "Ngày sinh", "Chức vụ"};
         model = new DefaultTableModel(cols, 0) {
@@ -153,11 +170,38 @@ public class NhanVien_GUI extends JPanel {
         table.setRowHeight(22);
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
+        // HEADER MÀU XANH
+        JTableHeader header = table.getTableHeader();
+        header.setBackground(new Color(0, 153, 153));
+        header.setForeground(Color.WHITE);
+        header.setFont(new Font("Segoe UI", Font.BOLD, 14));
+
+        // TÔ MÀU DÒNG XEN KẼ
+        table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value,
+                                                           boolean isSelected, boolean hasFocus,
+                                                           int row, int column) {
+
+                Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+
+                if (isSelected) {
+                    c.setBackground(new Color(0, 153, 153));
+                    c.setForeground(Color.WHITE);
+                } else {
+                    c.setBackground(row % 2 == 0 ? Color.WHITE : new Color(240, 240, 240));
+                    c.setForeground(Color.BLACK);
+                }
+                return c;
+            }
+        });
+
         pn.add(new JScrollPane(table), BorderLayout.CENTER);
 
         return pn;
     }
 
+    // ===================== LOAD & CRUD =========================
     private void loadChucVu() {
         cboChucVu.removeAllItems();
         List<ChucVu> ds = cvDAO.getAll();

@@ -2,132 +2,130 @@ package STARTING;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.*;
+
 import DAO.TaiKhoan_DAO;
 import Entity.TaiKhoan;
-import GUI.Home_GUI;
+import STARTING.Main;
 
 public class LoginForm extends JFrame {
 
-    private JTextField txtUsername;
-    private JPasswordField txtPassword;
-    private JButton btnLogin, btnExit;
+    private static final long serialVersionUID = 1L;
+
+    //  THÊM DÒNG NÀY: Lưu tài khoản đăng nhập toàn cục
+    public static TaiKhoan tkLogin = null;
+
+    private JTextField txtTenDN;
+    private JPasswordField txtMatKhau;
+    private TaiKhoan_DAO tkDAO = new TaiKhoan_DAO();
 
     public LoginForm() {
+        try {
+            UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
+        } catch (Exception ignored) {}
+
         setTitle("Đăng nhập hệ thống");
-        setSize(600, 400);
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setSize(500, 350);
         setLocationRelativeTo(null);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
-        // ===== Nền gradient =====
-        JPanel backgroundPanel = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                Graphics2D g2d = (Graphics2D) g;
-                GradientPaint gp = new GradientPaint(
-                        0, 0, new Color(131, 167, 255),
-                        getWidth(), getHeight(), new Color(204, 180, 255));
-                g2d.setPaint(gp);
-                g2d.fillRect(0, 0, getWidth(), getHeight());
-            }
-        };
-        backgroundPanel.setLayout(new GridBagLayout());
+        // ================= HEADER =================
+        JPanel header = new JPanel();
+        header.setBackground(new Color(0, 153, 51));
+        JLabel lblTitle = new JLabel("ĐĂNG NHẬP HỆ THỐNG");
+        lblTitle.setForeground(Color.WHITE);
+        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 24));
+        header.add(lblTitle);
+        add(header, BorderLayout.NORTH);
 
-        // ===== Form đăng nhập =====
-        JPanel loginPanel = new JPanel();
-        loginPanel.setBackground(new Color(255, 255, 255, 230));
-        loginPanel.setPreferredSize(new Dimension(380, 280));
-        loginPanel.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
-        loginPanel.setOpaque(true);
-        loginPanel.setLayout(new BoxLayout(loginPanel, BoxLayout.Y_AXIS));
+        // ================= FORM =================
+        JPanel form = new JPanel(new GridBagLayout());
+        form.setBackground(Color.WHITE);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(12, 12, 12, 12);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        JLabel lblTitle = new JLabel("ĐĂNG NHẬP HỆ THỐNG", JLabel.CENTER);
-        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 22));
-        lblTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
-        lblTitle.setBorder(BorderFactory.createEmptyBorder(10, 0, 20, 0));
+        JLabel lblUser = new JLabel("Tên đăng nhập:");
+        JLabel lblPass = new JLabel("Mật khẩu:");
+        lblUser.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+        lblPass.setFont(new Font("Segoe UI", Font.PLAIN, 16));
 
-        // username
-        JPanel userPanel = new JPanel(new BorderLayout(10, 10));
-        userPanel.setOpaque(false);
-        JLabel userIcon = new JLabel(new ImageIcon("src/icons/user.png"));
-        txtUsername = new JTextField();
-        txtUsername.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        txtUsername.setBorder(BorderFactory.createTitledBorder("Tài khoản"));
-        userPanel.add(userIcon, BorderLayout.WEST);
-        userPanel.add(txtUsername, BorderLayout.CENTER);
+        txtTenDN = new JTextField(20);
+        txtMatKhau = new JPasswordField(20);
+        JCheckBox chkShow = new JCheckBox("Hiện mật khẩu");
+        chkShow.setBackground(Color.WHITE);
+        chkShow.addActionListener(e -> txtMatKhau.setEchoChar(chkShow.isSelected() ? 0 : '•'));
 
-        // password
-        JPanel passPanel = new JPanel(new BorderLayout(10, 10));
-        passPanel.setOpaque(false);
-        JLabel passIcon = new JLabel(new ImageIcon("src/icons/lock.png"));
-        txtPassword = new JPasswordField();
-        txtPassword.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        txtPassword.setBorder(BorderFactory.createTitledBorder("Mật khẩu"));
-        passPanel.add(passIcon, BorderLayout.WEST);
-        passPanel.add(txtPassword, BorderLayout.CENTER);
+        gbc.gridx = 0; gbc.gridy = 0; form.add(lblUser, gbc);
+        gbc.gridx = 1; gbc.gridy = 0; form.add(txtTenDN, gbc);
+        gbc.gridx = 0; gbc.gridy = 1; form.add(lblPass, gbc);
+        gbc.gridx = 1; gbc.gridy = 1; form.add(txtMatKhau, gbc);
+        gbc.gridx = 1; gbc.gridy = 2; form.add(chkShow, gbc);
 
-        // buttons
-        JPanel buttonPanel = new JPanel();
-        buttonPanel.setOpaque(false);
-        btnLogin = new JButton("Đăng nhập");
-        btnLogin.setBackground(new Color(93, 123, 255));
+        add(form, BorderLayout.CENTER);
+
+        // ================= BUTTONS =================
+        JPanel btnPanel = new JPanel();
+        btnPanel.setBackground(Color.WHITE);
+        JButton btnLogin = new JButton("Đăng nhập");
+        JButton btnExit = new JButton("Thoát");
+
+        btnLogin.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        btnLogin.setBackground(new Color(0, 153, 51));
         btnLogin.setForeground(Color.WHITE);
-        btnLogin.setFont(new Font("Segoe UI", Font.BOLD, 14));
 
-        btnExit = new JButton("Thoát");
-        btnExit.setBackground(new Color(200, 200, 200));
-        btnExit.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        btnExit.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        btnExit.setBackground(new Color(204, 0, 0));
+        btnExit.setForeground(Color.WHITE);
 
-        buttonPanel.add(btnLogin);
-        buttonPanel.add(btnExit);
-
-        // add to loginPanel
-        loginPanel.add(lblTitle);
-        loginPanel.add(userPanel);
-        loginPanel.add(Box.createVerticalStrut(10));
-        loginPanel.add(passPanel);
-        loginPanel.add(Box.createVerticalStrut(20));
-        loginPanel.add(buttonPanel);
-
-        // Footer
-        JLabel lblFooter = new JLabel("Thiết kế bởi nhóm bạn", JLabel.CENTER);
-        lblFooter.setFont(new Font("Segoe UI", Font.ITALIC, 13));
-        lblFooter.setForeground(Color.DARK_GRAY);
-        lblFooter.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
-
-        backgroundPanel.add(loginPanel);
-        add(backgroundPanel, BorderLayout.CENTER);
-        add(lblFooter, BorderLayout.SOUTH);
-
-        // ==== SỰ KIỆN ====
-        btnLogin.addActionListener(e -> doLogin());
-        txtPassword.addActionListener(e -> doLogin());
+        btnLogin.addActionListener(e -> dangNhap());
         btnExit.addActionListener(e -> System.exit(0));
 
-        setVisible(true);
+        btnPanel.add(btnLogin);
+        btnPanel.add(btnExit);
+        add(btnPanel, BorderLayout.SOUTH);
+
+        txtMatKhau.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER)
+                    dangNhap();
+            }
+        });
     }
 
-    private void doLogin() {
-        String username = txtUsername.getText().trim();
-        String password = new String(txtPassword.getPassword()).trim();
+    // ================= XỬ LÝ ĐĂNG NHẬP =================
+    private void dangNhap() {
+        String user = txtTenDN.getText().trim();
+        String pass = new String(txtMatKhau.getPassword()).trim();
 
-        if (username.isEmpty() || password.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Vui lòng nhập tài khoản và mật khẩu!");
+        if (user.isEmpty() || pass.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Không được để trống tên đăng nhập hoặc mật khẩu!",
+                    "Lỗi", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
-        TaiKhoan tk = new TaiKhoan_DAO().dangNhap(username, password);
-
+        TaiKhoan tk = tkDAO.dangNhap(user, pass);
         if (tk == null) {
-            JOptionPane.showMessageDialog(this, "Sai tài khoản hoặc mật khẩu!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Tên đăng nhập hoặc mật khẩu sai!",
+                    "Đăng nhập thất bại", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
-        JOptionPane.showMessageDialog(this,
-                "Đăng nhập thành công!\nXin chào, " + tk.getNhanVien().getTenNV());
+        // Lưu tài khoản đăng nhập lại để GUI khác dùng
+        tkLogin = tk;
 
-        new Home_GUI(tk).setVisible(true);
-        this.dispose();
+        String tenNV = (tk.getNhanVien() != null) ? tk.getNhanVien().getTenNV() : "bạn";
+        JOptionPane.showMessageDialog(this,
+                "Đăng nhập thành công!\nXin chào, " + tenNV + " 😊",
+                "Chào mừng", JOptionPane.INFORMATION_MESSAGE);
+
+        dispose();
+        new Main().setVisible(true);
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> new LoginForm().setVisible(true));
     }
 }
