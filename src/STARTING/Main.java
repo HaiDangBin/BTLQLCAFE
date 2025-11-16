@@ -213,7 +213,8 @@ public class Main extends JFrame implements ActionListener {
             	setPanel(new TaiKhoan_GUI());
             } else if (o ==mnuNhanVien) {
             	setPanel(new NhanVien_GUI());
-            }
+            } else if(o ==mnuThongKeDoanhThu)
+            	setPanel(new ThongKeSanPham_GUI());
             
             
             

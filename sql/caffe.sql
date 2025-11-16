@@ -278,6 +278,7 @@ GO
 -- ===================================
 INSERT INTO KhachHang (maKH, tenKH, sDT, eMail)
 VALUES
+('KH000', N'Khách vãng lai', '0123456789', 'khachvlai@gmail.com'),
 ('KH001', N'Nguyễn Thị Mai', '0905123123', 'mainguyen@gmail.com'),
 ('KH002', N'Lê Văn Nam', '0918123456', 'namle95@gmail.com'),
 ('KH003', N'Trần Thị Thu', '0939456789', 'thutran2000@yahoo.com'),
@@ -299,6 +300,7 @@ VALUES
 ('KH019', N'Lê Thanh Bình', '0908789345', 'binhle89@gmail.com'),
 ('KH020', N'Trần Mỹ Linh', '0917123987', 'linhtran03@gmail.com');
 Go
+select*from KhachHang
 -- ===================================
 -- DỮ LIỆU MẪU CHO KHUYẾN MÃI
 -- ===================================
@@ -599,4 +601,8 @@ ADD maBan VARCHAR(10) NULL;
 ALTER TABLE DonDatBan
 ADD CONSTRAINT FK_DonDatBan_Ban
 FOREIGN KEY (maBan) REFERENCES Ban(maBan);
+
+SELECT * FROM KhachHang WHERE maKH = 'KH000';
+
+
 

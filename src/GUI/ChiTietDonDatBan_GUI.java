@@ -275,7 +275,7 @@ public class ChiTietDonDatBan_GUI extends JDialog {
             }
             ChucVu chucVuCuaNV = this.chucVuDAO.findById("L01");
             // 3. Nhân viên (mặc định)
-            NhanVien nv = new NhanVien("NV01", "Admin", " ", " "," ",chucVuCuaNV);
+            NhanVien nv = new NhanVien("NV01", "Admin", " ", " ",null,chucVuCuaNV);
 
             // 4. Tạo đối tượng DonDatBan
             java.sql.Date sqlNgayDat = java.sql.Date.valueOf(LocalDate.now());

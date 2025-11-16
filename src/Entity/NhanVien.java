@@ -1,14 +1,16 @@
 package Entity;
 
+import java.sql.Date;
+
 public class NhanVien {
     private String maNV;
     private String tenNV;
     private String sdt;
     private String diaChi;
-    private String ngaySinh;
+    private Date ngaySinh;
     private ChucVu chucVu;
 
-    public NhanVien(String maNV, String tenNV, String sdt, String diaChi, String ngaySinh, ChucVu chucVu) {
+    public NhanVien(String maNV, String tenNV, String sdt, String diaChi, Date ngaySinh, ChucVu chucVu) {
         this.maNV = maNV;
         this.tenNV = tenNV;
         this.sdt = sdt;
@@ -38,8 +40,8 @@ public class NhanVien {
     public String getDiaChi() { return diaChi; }
     public void setDiaChi(String diaChi) { this.diaChi = diaChi; }
 
-    public String getNgaySinh() { return ngaySinh; }
-    public void setNgaySinh(String ngaySinh) { this.ngaySinh = ngaySinh; }
+    public Date getNgaySinh() { return ngaySinh; }
+    public void setNgaySinh(Date ngaySinh) { this.ngaySinh = ngaySinh; }
 
     public ChucVu getChucVu() { return chucVu; }
     public void setChucVu(ChucVu chucVu) { this.chucVu = chucVu; }

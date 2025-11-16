@@ -8,19 +8,19 @@ public class Thue {
     private LocalDate ngayApDung;
     private LocalDate ngayKetThuc;
     private String doiTuongApDung;
-    private String loaiThue;
+    private String maLoaiThue; // đổi tên cho đúng DB
 
     public Thue() {
     }
 
     public Thue(String maThue, String tenThue, LocalDate ngayApDung, LocalDate ngayKetThuc,
-                String doiTuongApDung, String loaiThue) {
+                String doiTuongApDung, String maLoaiThue) {
         this.maThue = maThue;
         this.tenThue = tenThue;
         this.ngayApDung = ngayApDung;
         this.ngayKetThuc = ngayKetThuc;
         this.doiTuongApDung = doiTuongApDung;
-        this.loaiThue = loaiThue;
+        this.maLoaiThue = maLoaiThue;
     }
 
     public String getMaThue() {
@@ -63,12 +63,12 @@ public class Thue {
         this.doiTuongApDung = doiTuongApDung;
     }
 
-    public String getLoaiThue() {
-        return loaiThue;
+    public String getMaLoaiThue() {
+        return maLoaiThue;
     }
 
-    public void setLoaiThue(String loaiThue) {
-        this.loaiThue = loaiThue;
+    public void setMaLoaiThue(String maLoaiThue) {
+        this.maLoaiThue = maLoaiThue;
     }
 
     @Override
@@ -79,7 +79,7 @@ public class Thue {
                 ", ngayApDung=" + ngayApDung +
                 ", ngayKetThuc=" + ngayKetThuc +
                 ", doiTuongApDung='" + doiTuongApDung + '\'' +
-                ", loaiThue='" + loaiThue + '\'' +
+                ", maLoaiThue='" + maLoaiThue + '\'' +
                 '}';
     }
 }

@@ -138,4 +138,78 @@ public class KhachHang_DAO {
         
         return kh;
     }
+    public String generateMaKH() {
+        String sql = "SELECT TOP 1 maKH FROM KhachHang ORDER BY maKH DESC";
+        try (Connection con = DBconnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            if (rs.next()) {
+                String last = rs.getString("maKH").trim(); // ví dụ: KH015
+                int num = Integer.parseInt(last.substring(2)) + 1;
+                return String.format("KH%03d", num);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return "KH001";
+    }
+    public boolean insert(KhachHang kh) {
+        String sql = """
+            INSERT INTO KhachHang (maKH, tenKH, sDT, email)
+            VALUES (?, ?, ?, ?)
+        """;
+
+        try (Connection con = DBconnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setString(1, kh.getMaKH());
+            ps.setString(2, kh.getTenKH());
+            ps.setString(3, kh.getsDT());
+            ps.setString(4, kh.getEmail());
+
+            return ps.executeUpdate() > 0;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+    public KhachHang findKhachHangByMa(String maKH) {
+        String sql = "SELECT * FROM KhachHang WHERE maKH = ?";
+        try (Connection conn = DBconnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, maKH);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                KhachHang kh = new KhachHang();
+                kh.setMaKH(rs.getString("maKH"));
+                kh.setTenKH(rs.getString("tenKH"));
+                kh.setsDT(rs.getString("sDT"));
+                kh.setEmail(rs.getString("eMail"));
+                return kh;
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null; // Không tìm thấy
+    }
+    public boolean updateKH(KhachHang kh) {
+        String sql = "UPDATE KhachHang SET tenKH=?, sDT=?, eMail=? WHERE maKH=?";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, kh.getTenKH());
+            ps.setString(2, kh.getsDT());
+            ps.setString(3, kh.getEmail());
+            ps.setString(4, kh.getMaKH());
+            return ps.executeUpdate() > 0;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 }

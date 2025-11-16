@@ -10,7 +10,8 @@ import STARTING.Main;
 
 public class LoginForm extends JFrame {
 
-    private JTextField txtTenDN;
+    public static TaiKhoan tkLogin;
+	private JTextField txtTenDN;
     private JPasswordField txtMatKhau;
     private TaiKhoan_DAO tkDAO = new TaiKhoan_DAO();
 
@@ -151,7 +152,7 @@ public class LoginForm extends JFrame {
                     "Đăng nhập thất bại", JOptionPane.ERROR_MESSAGE);
             return;
         }
-
+        tkLogin = tk;
         // 👉 CHỈ DÙNG GETTER ĐANG CÓ: getNhanVien().getTenNV()
         String tenNV = "bạn";
         if (tk.getNhanVien() != null) {

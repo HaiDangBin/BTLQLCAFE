@@ -4,6 +4,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 
 import Entity.HoaDon;
@@ -217,6 +218,13 @@ public class HoaDon_DAO {
 
         try (Connection con = DBconnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
+        	System.out.println("=== DEBUG INSERT HOA DON ===");
+        	System.out.println("maHD = " + hd.getMaHD());
+        	System.out.println("ngayLap = " + hd.getNgayLap());
+        	System.out.println("maKH = " + hd.getMaKH());
+        	System.out.println("maNV = " + hd.getMaNV());
+        	System.out.println("maKM = " + hd.getMaKM());
+        	System.out.println("maDatBan = " + hd.getMaDatBan());
 
             ps.setString(1, hd.getMaHD());
             ps.setDate(2, hd.getNgayLap());
@@ -228,7 +236,9 @@ public class HoaDon_DAO {
             return ps.executeUpdate() > 0;
 
         } catch (Exception e) {
-            e.printStackTrace();
+        	e.printStackTrace();  // IN RA CONSOLE
+            JOptionPane.showMessageDialog(null, 
+                "SQL ERROR INSERT HOADON:\n" + e.getMessage());
         }
 
         return false;
@@ -316,6 +326,32 @@ public class HoaDon_DAO {
             e.printStackTrace();
         }
         return "KH001";
+    }
+    public HoaDon getHoaDonByMa(String maHD) {
+        String sql = "SELECT * FROM HoaDon WHERE maHD = ?";
+        try (Connection conn = DBconnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, maHD);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                HoaDon hd = new HoaDon(
+                    rs.getString("maHD"),
+                    rs.getString("maNV"),
+                    rs.getString("maKH"),
+                    rs.getString("maKM"),
+                    rs.getString("maDatBan"),
+                    rs.getDate("ngayLap")
+                );
+                return hd;
+            }
+
+        } catch (SQLException e) {
+            System.err.println("Lỗi lấy hóa đơn: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return null;
     }
 
 }

@@ -50,7 +50,7 @@ public class TaiKhoan_DAO {
                         rs.getString("tenNV"),
                         rs.getString("sDT"),
                         rs.getString("diaChi"),
-                        rs.getString("ngaySinh"),
+                        rs.getDate("ngaySinh"),
                         cv
                 );
 

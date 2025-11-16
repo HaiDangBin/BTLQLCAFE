@@ -3,6 +3,7 @@ package DAO;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 
 import Entity.ChucVu; 
@@ -100,5 +101,25 @@ public class ChucVu_DAO {
             e.printStackTrace();
             return false;
         }
+    }
+    public ChucVu findChucVuByMa(String maLoai) {
+        String sql = "SELECT * FROM LoaiChucVu WHERE maLoai = ?";
+        try (Connection conn = DBconnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, maLoai);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                ChucVu cv = new ChucVu();
+                cv.setMaLoai(rs.getString("maLoai"));
+                cv.setTenLoai(rs.getString("tenLoai"));
+                return cv;
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }

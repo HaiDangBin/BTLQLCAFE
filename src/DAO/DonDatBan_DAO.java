@@ -227,6 +227,80 @@ public class DonDatBan_DAO {
 	        return false;
 	    }
 	}
+	public DonDatBan getDonDatBanByMaBan1(String maBan) {
+	    String sql = """
+	        SELECT TOP 1
+	            ddb.maDatBan, ddb.ngayDat, ddb.soLuongKhach, ddb.trangThai,
+	            ddb.maKH, ddb.maNV, ddb.maBan,
+	            b.viTri, b.sucChua AS banSucChua, b.trangThai AS banTrangThai
+	        FROM DonDatBan ddb
+	        LEFT JOIN Ban b ON ddb.maBan = b.maBan
+	        WHERE ddb.maBan = ? AND ddb.trangThai = 'Đang phục vụ'
+	        ORDER BY ddb.ngayDat DESC
+	        """;
+
+	    try (Connection con = DBconnection.getConnection();
+	         PreparedStatement stmt = con.prepareStatement(sql)) {
+
+	        stmt.setString(1, maBan);
+	        try (ResultSet rs = stmt.executeQuery()) {
+	            if (rs.next()) {
+	                DonDatBan ddb = new DonDatBan();
+
+	                // === CƠ BẢN ===
+	                ddb.setMaDatBan(rs.getString("maDatBan"));
+	                ddb.setNgayDat(rs.getDate("ngayDat"));
+	                ddb.setSoLuongKhach(rs.getInt("soLuongKhach"));
+	                ddb.setTrangThai(rs.getString("trangThai"));
+
+	                // === KHÁCH HÀNG (Object) ===
+	                String maKHStr = rs.getString("maKH");
+	                KhachHang kh = null;
+	                if (maKHStr != null && !maKHStr.trim().isEmpty()) {
+	                    kh = new KhachHang_DAO().findKhachHangByMa(maKHStr);
+	                    if (kh == null) {
+	                        kh = new KhachHang(maKHStr, "Khách lẻ", "");
+	                    }
+	                } else {
+	                    kh = new KhachHang("KH000", "Khách lẻ", "");
+	                }
+	                ddb.setMaKH(kh);  // Giữ nguyên Entity: setMaKH(KhachHang)
+
+	                // === NHÂN VIÊN (Object) ===
+	                String maNVStr = rs.getString("maNV");
+	                NhanVien nv = null;
+	                if (maNVStr != null && !maNVStr.trim().isEmpty()) {
+	                    nv = new NhanVien_DAO().findNhanVienByMa(maNVStr);
+	                    if (nv == null) {
+	                        ChucVu cv = new ChucVu("L01", "Nhân viên");
+	                        nv = new NhanVien(maNVStr, "Nhân viên", "", "", null, cv);
+	                    }
+	                } else {
+	                    ChucVu cv = new ChucVu("L01", "Admin");
+	                    nv = new NhanVien("NV01", "Admin", "", "", null, cv);
+	                }
+	                ddb.setMaNV(nv);  // Giữ nguyên Entity
+
+	                // === BÀN (Object) ===
+	                String maBanDB = rs.getString("maBan");
+	                if (maBanDB != null) {
+	                    Ban ban = new Ban();
+	                    ban.setMaBan(maBanDB);
+	                    ban.setViTri(rs.getString("viTri"));
+	                    ban.setSucChua(rs.getInt("banSucChua"));
+	                    ban.setTrangThai(rs.getString("banTrangThai"));
+	                    ddb.setBan(ban);  // Giữ nguyên Entity
+	                }
+
+	                return ddb;
+	            }
+	        }
+	    } catch (SQLException e) {
+	        System.err.println("Lỗi SQL khi tìm DonDatBan theo maBan: " + e.getMessage());
+	        e.printStackTrace();
+	    }
+	    return null;
+	}
 
 	public DonDatBan getDonDatBanByMa(String maDDB) {
 	    DonDatBan ddb = null;
@@ -271,9 +345,9 @@ public class DonDatBan_DAO {
 	                ChucVu chucVuCuaNV = chucVuDAO.findById("L01");
 	                NhanVien nhanVien = null;
 	                if (maNV != null && !maNV.trim().isEmpty()) {
-	                    nhanVien = new NhanVien(maNV, "Nhân viên", "", "","",chucVuCuaNV);
+	                    nhanVien = new NhanVien(maNV, "Nhân viên", "", "",null,chucVuCuaNV);
 	                } else {
-	                    nhanVien = new NhanVien("NV01", "Admin", "", "","",chucVuCuaNV);
+	                    nhanVien = new NhanVien("NV01", "Admin", "", "",null,chucVuCuaNV);
 	                }
 
 	                // TẠO BAN 
@@ -475,5 +549,50 @@ public class DonDatBan_DAO {
 
         return rowsAffected > 0;
     }
+	public DonDatBan getDonDatBanByMaBan(String maBan) {
+	    DonDatBan ddb = null;
+	    String sql = "SELECT * FROM DonDatBan WHERE maBan = ? AND trangThai IN ('Đã đặt', 'Đang phục vụ') ORDER BY ngayDat DESC LIMIT 1";  // Lấy đơn mới nhất đang hoạt động
+
+	    try (Connection conn = DBconnection.getConnection();
+	         PreparedStatement ps = conn.prepareStatement(sql)) {
+	        
+	        ps.setString(1, maBan);
+	        ResultSet rs = ps.executeQuery();
+	        
+	        if (rs.next()) {
+	            ddb = new DonDatBan();
+	            
+	            // Set các field cơ bản (String/Date/Int)
+	            ddb.setMaDatBan(rs.getString("maDatBan"));
+	            ddb.setNgayDat(rs.getDate("ngayDat"));
+	            ddb.setSoLuongKhach(rs.getInt("soLuongKhach"));
+	            ddb.setTrangThai(rs.getString("trangThai"));
+	            
+	            // Set maKH: Tạo object KhachHang tạm thời từ String
+	            String maKHStr = rs.getString("maKH");
+	            if (maKHStr != null && !maKHStr.trim().isEmpty()) {
+	                KhachHang khTemp = new KhachHang(maKHStr, null, null);  // Constructor: maKH, tenKH=null, sDT=null (chỉ cần maKH để FK)
+	                ddb.setMaKH(khTemp);
+	            }
+	            
+	            // Set maNV: Tạo object NhanVien tạm thời từ String
+	            String maNVStr = rs.getString("maNV");
+	            if (maNVStr != null && !maNVStr.trim().isEmpty()) {
+	                NhanVien nvTemp = new NhanVien(maNVStr, null, null, null, null, null);  // Constructor: maNV, tenNV=null, sDT=null, diaChi=null, ngaySinh=null, maLoai=null (dựa trên schema NhanVien)
+	                ddb.setMaNV(nvTemp);  // Giả sử có setMaNV(NhanVien)
+	            }
+	            
+	            // Set maBan (nếu Entity có field riêng)
+	            ddb.setBan(new Ban(maBan));  // Giả sử có setBan(Ban) hoặc setMaBan(String maBan)
+	        }
+	        
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	        System.err.println("Lỗi khi lấy DonDatBan bằng maBan: " + e.getMessage());
+	        // Có thể throw new Exception nếu cần
+	    }
+	    
+	    return ddb;
+	}
 
 }

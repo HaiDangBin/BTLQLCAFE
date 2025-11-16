@@ -34,7 +34,7 @@ public class NhanVien_DAO {
                         rs.getString("tenNV"),
                         rs.getString("sDT"),
                         rs.getString("diaChi"),
-                        rs.getString("ngaySinh"),
+                        rs.getDate("ngaySinh"),
                         cv
                 );
 
@@ -58,7 +58,7 @@ public class NhanVien_DAO {
             ps.setString(2, nv.getTenNV());
             ps.setString(3, nv.getSdt());
             ps.setString(4, nv.getDiaChi());
-            ps.setString(5, nv.getNgaySinh());
+            ps.setDate(5, nv.getNgaySinh());
             ps.setString(6, nv.getChucVu().getMaLoai());
 
             return ps.executeUpdate() > 0;
@@ -83,7 +83,7 @@ public class NhanVien_DAO {
             ps.setString(1, nv.getTenNV());
             ps.setString(2, nv.getSdt());
             ps.setString(3, nv.getDiaChi());
-            ps.setString(4, nv.getNgaySinh());
+            ps.setDate(4, nv.getNgaySinh());
             ps.setString(5, nv.getChucVu().getMaLoai());
             ps.setString(6, nv.getMaNV());
 
@@ -108,5 +108,36 @@ public class NhanVien_DAO {
             e.printStackTrace();
             return false;
         }
+    }
+    public NhanVien findNhanVienByMa(String maNV) {
+        String sql = "SELECT * FROM NhanVien WHERE maNV = ?";
+        try (Connection conn = DBconnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, maNV);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                NhanVien nv = new NhanVien();
+                nv.setMaNV(rs.getString("maNV"));
+                nv.setTenNV(rs.getString("tenNV"));
+                nv.setSdt(rs.getString("sDT"));
+                nv.setDiaChi(rs.getString("diaChi"));
+                nv.setNgaySinh(rs.getDate("ngaySinh"));  // Date → OK
+
+                // Dùng ChucVu_DAO để lấy object ChucVu
+                String maLoai = rs.getString("maLoai");
+                if (maLoai != null) {
+                    ChucVu cv = new ChucVu_DAO().findChucVuByMa(maLoai);
+                    nv.setChucVu(cv);  // Giả sử method là setChucVu(ChucVu)
+                }
+
+                return nv;
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }

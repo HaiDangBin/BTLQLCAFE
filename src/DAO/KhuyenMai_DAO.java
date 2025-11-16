@@ -75,6 +75,15 @@ public class KhuyenMai_DAO {
             return ps.executeUpdate() > 0;
         }
     }
+    public boolean hasReferences(String maKM) throws SQLException {
+        String sql = "SELECT 1 FROM HoaDon WHERE maKM = ?"; // chỉ cần tồn tại là đủ
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, maKM);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        }
+    }
 
     /* ===================== Queries tiện ích ===================== */
 

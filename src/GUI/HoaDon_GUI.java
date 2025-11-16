@@ -2,6 +2,8 @@ package GUI;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.JTableHeader;
+import javax.swing.table.DefaultTableCellRenderer;
 
 import DAO.ChiTietHoaDon_DAO;
 import DAO.HoaDon_DAO;
@@ -43,17 +45,21 @@ public class HoaDon_GUI extends JPanel {
         loadHoaDon();
     }
 
+    // ====================== HEADER ======================
     private JPanel buildTopPanel() {
         JPanel top = new JPanel(new BorderLayout());
+        top.setBackground(new Color(0,153,76));
         top.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         JLabel lbl = new JLabel("QUẢN LÝ HÓA ĐƠN", JLabel.CENTER);
-        lbl.setFont(new Font("Segoe UI", Font.BOLD, 24));
+        lbl.setFont(new Font("Segoe UI", Font.BOLD, 26));
+        lbl.setForeground(Color.WHITE);
         top.add(lbl, BorderLayout.CENTER);
 
         return top;
     }
 
+    // ====================== MAIN PANEL ======================
     private JPanel buildMainPanel() {
         JPanel pn = new JPanel(new BorderLayout());
 
@@ -63,16 +69,20 @@ public class HoaDon_GUI extends JPanel {
         return pn;
     }
 
+    // ====================== FUNCTION PANEL ======================
     private JPanel buildFunctionPanel() {
         JPanel fn = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
+        fn.setBackground(Color.WHITE);
 
-        JButton btnNewHD   = new JButton("Lập hóa đơn");
-        JButton btnEditHD  = new JButton("Sửa");
-        JButton btnDeleteHD= new JButton("Xóa");
-        JButton btnReload  = new JButton("Tải lại");
+        RoundedButton btnNewHD   = new RoundedButton("Lập hóa đơn", new Color(0,102,0));
+        RoundedButton btnEditHD  = new RoundedButton("Sửa", new Color(0,102,102));
+        RoundedButton btnDeleteHD= new RoundedButton("Xóa", new Color(153,0,0));
+        RoundedButton btnReload  = new RoundedButton("Tải lại", new Color(102,102,102));
+        RoundedButton btnSearch  = new RoundedButton("Tìm", new Color(0,102,204));
 
         txtSearch = new JTextField(20);
-        JButton btnSearch = new JButton("Tìm");
+        txtSearch.setFont(new Font("Segoe UI", Font.PLAIN, 15));
+        txtSearch.setPreferredSize(new Dimension(220, 32));
 
         fn.add(btnNewHD);
         fn.add(btnEditHD);
@@ -91,9 +101,12 @@ public class HoaDon_GUI extends JPanel {
         return fn;
     }
 
+    // ====================== CONTENT PANEL ======================
     private JPanel buildContentPanel() {
         JPanel pn = new JPanel(new GridLayout(2, 1));
+        pn.setBackground(Color.WHITE);
 
+        // ----------- BẢNG HÓA ĐƠN -----------
         String[] colsHD = {
             "Mã HD", "Mã NV", "Mã KH",
             "Mã KM", "Mã Đặt Bàn", "Ngày lập", "Tổng tiền"
@@ -105,7 +118,7 @@ public class HoaDon_GUI extends JPanel {
         };
 
         tableHD = new JTable(modelHD);
-        tableHD.setRowHeight(22);
+        decorateTable(tableHD);
 
         tableHD.addMouseListener(new MouseAdapter() {
             @Override
@@ -119,6 +132,7 @@ public class HoaDon_GUI extends JPanel {
 
         pn.add(new JScrollPane(tableHD));
 
+        // ----------- BẢNG CHI TIẾT -----------
         String[] colsCT = {
             "Mã SP", "Tên SP", "Số lượng",
             "Đơn giá", "Thành tiền",
@@ -131,14 +145,33 @@ public class HoaDon_GUI extends JPanel {
         };
 
         tableCT = new JTable(modelCT);
-        tableCT.setRowHeight(22);
+        decorateTable(tableCT);
 
         pn.add(new JScrollPane(tableCT));
 
         return pn;
     }
 
-    private void loadHoaDon() {
+    // ====================== DECORATE TABLE ======================
+    private void decorateTable(JTable table) {
+        table.setRowHeight(24);
+        table.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        table.setGridColor(new Color(220, 220, 220));
+
+        JTableHeader header = table.getTableHeader();
+        header.setBackground(new Color(0,153,76));
+        header.setForeground(Color.WHITE);
+        header.setFont(new Font("Segoe UI", Font.BOLD, 15));
+
+        DefaultTableCellRenderer center = new DefaultTableCellRenderer();
+        center.setHorizontalAlignment(JLabel.CENTER);
+
+        for (int i = 0; i < table.getColumnCount(); i++)
+            table.getColumnModel().getColumn(i).setCellRenderer(center);
+    }
+
+    // ====================== LOAD HÓA ĐƠN ======================
+    public void loadHoaDon() {
         modelHD.setRowCount(0);
         List<HoaDon> ds = hdDAO.getAll();
 
@@ -158,6 +191,7 @@ public class HoaDon_GUI extends JPanel {
         modelCT.setRowCount(0);
     }
 
+    // ====================== LOAD CHI TIẾT ======================
     private void loadChiTietHD(String maHD) {
         modelCT.setRowCount(0);
 
@@ -201,6 +235,7 @@ public class HoaDon_GUI extends JPanel {
         }
     }
 
+    // ====================== SEARCH ======================
     private void searchHoaDon() {
         String key = txtSearch.getText().trim().toLowerCase();
         modelHD.setRowCount(0);
@@ -226,6 +261,7 @@ public class HoaDon_GUI extends JPanel {
         modelCT.setRowCount(0);
     }
 
+    // ====================== VALIDATE ======================
     private String validateHoaDon(String maHD, String ngay, String maNV,
                                   String maKH, String maKM, String maDatBan,
                                   boolean isNew) {
@@ -265,6 +301,7 @@ public class HoaDon_GUI extends JPanel {
         return null;
     }
 
+    // ====================== POPUP THÊM ======================
     private void openNewHoaDonDialog() {
         JDialog dialog = new JDialog((Frame)null, "Lập hóa đơn mới", true);
         dialog.setSize(420, 360);
@@ -310,12 +347,13 @@ public class HoaDon_GUI extends JPanel {
             String maKH = txtMaKH.getText().trim();
             String maKM = txtMaKM.getText().trim();
             String maDB = txtMaDatBan.getText().trim();
-            java.sql.Date sqlDate = java.sql.Date.valueOf(LocalDate.parse(ngay));
+
             String err = validateHoaDon(maHD, ngay, maNV, maKH, maKM, maDB, true);
             if (err != null) {
                 JOptionPane.showMessageDialog(dialog, err, "Lỗi", JOptionPane.ERROR_MESSAGE);
                 return;
             }
+            java.sql.Date sqlDate = java.sql.Date.valueOf(LocalDate.parse(ngay));
 
             HoaDon hd = new HoaDon(maHD, maNV, maKH, maKM, maDB, sqlDate);
 
@@ -331,6 +369,7 @@ public class HoaDon_GUI extends JPanel {
         dialog.setVisible(true);
     }
 
+    // ====================== POPUP SỬA ======================
     private void openEditHoaDonDialog() {
         int row = tableHD.getSelectedRow();
         if (row < 0) {
@@ -389,13 +428,13 @@ public class HoaDon_GUI extends JPanel {
             String maKH = txtMaKH.getText().trim();
             String maKM = txtMaKM.getText().trim();
             String maDB = txtMaDatBan.getText().trim();
-            java.sql.Date sqlDate = java.sql.Date.valueOf(LocalDate.parse(ngay));
+
             String err = validateHoaDon(maHD, ngay, maNV, maKH, maKM, maDB, false);
             if (err != null) {
                 JOptionPane.showMessageDialog(dialog, err, "Lỗi", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-
+            java.sql.Date sqlDate = java.sql.Date.valueOf(LocalDate.parse(ngay));
             HoaDon hd = new HoaDon(maHD, maNV, maKH, maKM, maDB, sqlDate);
 
             if (hdDAO.update(hd)) {
@@ -410,6 +449,7 @@ public class HoaDon_GUI extends JPanel {
         dialog.setVisible(true);
     }
 
+    // ====================== XÓA ======================
     private void deleteHoaDon() {
         int row = tableHD.getSelectedRow();
         if (row < 0) {
@@ -432,4 +472,51 @@ public class HoaDon_GUI extends JPanel {
             JOptionPane.showMessageDialog(this, "Xóa thất bại!");
         }
     }
+
+    // ====================== BUTTON DECORATION ======================
+    class RoundedButton extends JButton {
+        private Color backgroundColor;
+        private Color hoverColor;
+
+        public RoundedButton(String text, Color bgColor) {
+            super(text);
+            this.backgroundColor = bgColor;
+            this.hoverColor = bgColor.darker();
+
+            setContentAreaFilled(false);
+            setFocusPainted(false);
+            setBorderPainted(false);
+            setForeground(Color.WHITE);
+            setFont(new Font("Segoe UI", Font.BOLD, 15));
+            setPreferredSize(new Dimension(130, 35));
+            setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+            addMouseListener(new java.awt.event.MouseAdapter() {
+                @Override
+                public void mouseEntered(MouseEvent evt) {
+                    setBackground(hoverColor);
+                }
+                @Override
+                public void mouseExited(MouseEvent evt) {
+                    setBackground(backgroundColor);
+                }
+            });
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setColor(getBackground());
+            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
+            super.paintComponent(g2);
+            g2.dispose();
+        }
+
+        @Override
+        public void updateUI() {
+            setUI(new javax.swing.plaf.basic.BasicButtonUI());
+        }
+    }
+
 }
