@@ -75,8 +75,6 @@ public class Main extends JFrame implements ActionListener {
                 menu.add(mnuDatBan);
                 break;
             case "Tìm Kiếm":
-                menu.add(mnuTKHoaDon);
-                menu.add(mnuTKDatBan);
                 menu.add(mnuTkKhachHang);
                 menu.add(mnuTkNhanVien);
                 menu.add(mnuTkSanPham);
@@ -85,7 +83,6 @@ public class Main extends JFrame implements ActionListener {
                 break;
             case "Thống Kê":
                 menu.add(mnuThongKeDoanhThu);
-                menu.add(mnuThongKeHoaDon);
                 break;
         }
     }
@@ -108,10 +105,7 @@ public class Main extends JFrame implements ActionListener {
         mnuDonDatBan = new JMenuItem("Quản lý đơn đặt bàn");
         mnuHoaDon = new JMenuItem("Quản lý hóa đơn");
         mnuDatBan = new JMenuItem("Đặt bàn");
-        mnuThongKeDoanhThu = new JMenuItem("Thống kê doanh thu");
-        mnuThongKeHoaDon = new JMenuItem("Thống kê hóa đơn");
-        mnuTKHoaDon = new JMenuItem("Tìm kiếm hóa đơn");
-        mnuTKDatBan = new JMenuItem("Tìm kiếm đơn đặt bàn");
+        mnuThongKeDoanhThu = new JMenuItem("Báo cáo quản lý");
         mnuTkKhachHang = new JMenuItem("Tìm kiếm khách hàng");
         mnuTkNhanVien = new JMenuItem("Tìm kiếm nhân viên");
         mnuTkSanPham = new JMenuItem("Tìm kiếm sản phẩm");
@@ -121,7 +115,7 @@ public class Main extends JFrame implements ActionListener {
 
         JMenuItem[] allItems = {
             mnuTrangChu, mnuTroGiup, mnuThoat, mnuTaiKhoan, mnuKhachHang, mnuNhanVien, mnuKhuyenMai, mnuSanPham,
-            mnuDonDatBan, mnuDatBan, mnuHoaDon, mnuThongKeDoanhThu, mnuThongKeHoaDon, mnuTKHoaDon, mnuTKDatBan,
+            mnuDonDatBan, mnuDatBan, mnuHoaDon, mnuThongKeDoanhThu,
             mnuTkKhachHang, mnuTkNhanVien, mnuTkSanPham, mnuTkKhuyenMai, mnuThue, mnuTkThue
         };
 
@@ -213,9 +207,16 @@ public class Main extends JFrame implements ActionListener {
             	setPanel(new TaiKhoan_GUI());
             } else if (o ==mnuNhanVien) {
             	setPanel(new NhanVien_GUI());
-            } else if(o ==mnuThongKeDoanhThu)
+            } else if(o ==mnuThongKeDoanhThu) {
             	setPanel(new ThongKeSanPham_GUI());
-            
+            } else if(o == mnuTkKhuyenMai) {
+            	setPanel(new TimKiemKhuyenMai_GUI());
+            } else if(o ==mnuTkThue) {
+            	setPanel(new TimKiemThue_GUI());
+            }
+            	
+            	
+       
             
             
             else if (o == mnuThoat) {

@@ -261,12 +261,14 @@ public class ChiTietHoaDonSanPham_GUI extends JPanel {
 	        String maKH = null;
 	        String maDatBan = null;
 
-	        if (this.maBanHienTai != null && !this.maBanHienTai.trim().isEmpty()) {
-	            DonDatBan ddb = new DonDatBan_DAO().getDonDatBanByMaBan(this.maBanHienTai);
-	            if (ddb != null && "Đang phục vụ".equals(ddb.getTrangThai())) {
-	                maDatBan = ddb.getMaDatBan();
-	                KhachHang kh = ddb.getMaKH();
-	                if (kh != null) maKH = kh.getMaKH();
+	        DonDatBan ddb = new DonDatBan_DAO().getLatestActiveDonDatBanByMaBan(this.maBanHienTai);
+
+	        if (ddb != null) {
+	            maDatBan = ddb.getMaDatBan();
+
+	            KhachHang kh = ddb.getMaKH();
+	            if (kh != null && kh.getMaKH() != null) {
+	                maKH = kh.getMaKH();
 	            }
 	        }
 
