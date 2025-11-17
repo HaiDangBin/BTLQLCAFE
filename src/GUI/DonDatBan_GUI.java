@@ -2,16 +2,19 @@ package GUI;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.GridLayout;
 import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
@@ -21,6 +24,7 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -62,10 +66,15 @@ public class DonDatBan_GUI extends JPanel implements ActionListener{
     private RoundedButton btnLamMoi;
     private RoundedButton btnXem;
     private JComboBox<String> comboBoxThoiGian;
-	private RoundedButton btnThanhToan;
+    private String maDDBHienTai;
+    private Ban banHienTai;
+    private Ban_DAO banDAO = new Ban_DAO();
+    private final double TIEN_COC_MOT_NGUOI = 10000.0;
+
 	private DonDatBan_DAO ddbDAO; 
 
     public DonDatBan_GUI() {
+    	ddbDAO = new DonDatBan_DAO();
         setLayout(new BorderLayout());
 
         // ======= HEADER =======
@@ -96,30 +105,30 @@ public class DonDatBan_GUI extends JPanel implements ActionListener{
 
         JLabel thoiGian = new JLabel("Thời gian");
         thoiGian.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        thoiGian.setPreferredSize(new Dimension(130,30));
+        thoiGian.setPreferredSize(new Dimension(100,30));
 
         String [] ngay = {"Tất cả", "Hôm nay", "Hôm qua"}; 
         comboBoxThoiGian = new JComboBox<>(ngay);
         comboBoxThoiGian.setSelectedIndex(0);
-        comboBoxThoiGian.setPreferredSize(new Dimension(150,30));
+        comboBoxThoiGian.setPreferredSize(new Dimension(110,30));
 
         JLabel ngayLap = new JLabel("Ngày lập:");
-        ngayLap.setPreferredSize(new Dimension(130,30));
+        ngayLap.setPreferredSize(new Dimension(90,30));
         ngayLap.setFont(new Font("Segoe UI", Font.BOLD, 16));
 
         dateChooser = new JDateChooser(); 
         dateChooser.setDate(null); 
         dateChooser.setDateFormatString("dd/MM/yyyy");
-        dateChooser.setPreferredSize(new Dimension(130, 25));
-        dateChooser.setMaximumSize(new Dimension(130, 25));
+        dateChooser.setPreferredSize(new Dimension(110, 25));
+        dateChooser.setMaximumSize(new Dimension(110, 25));
 
         pnA.setBorder(BorderFactory.createEmptyBorder(10,10,10,10));
         pnA.add(tenKH); pnA.add(txtTenKH);
         pnA.add(Box.createHorizontalStrut(30));
         pnA.add(sdt); pnA.add(txtSDT);
-        pnA.add(Box.createHorizontalStrut(30));
+        pnA.add(Box.createHorizontalStrut(20));
         pnA.add(thoiGian); pnA.add(comboBoxThoiGian); 
-        pnA.add(Box.createHorizontalStrut(30));
+        pnA.add(Box.createHorizontalStrut(20));
         pnA.add(ngayLap); pnA.add(dateChooser);       
         bx1.add(pnA);
 
@@ -131,7 +140,6 @@ public class DonDatBan_GUI extends JPanel implements ActionListener{
         btnTimHD = new RoundedButton("Tìm kiếm", new Color(128,128,128));
         btnLamMoi = new RoundedButton("Làm mới", new Color(128,128,128));
         btnXem = new RoundedButton("Xem", new Color(153,0,0));
-        btnThanhToan = new RoundedButton("Thanh toán", new Color(0,102,0));
 
         Dimension btnSize = new Dimension(350,30);
         pnB.setBorder(BorderFactory.createEmptyBorder(10,10,20,10));
@@ -142,8 +150,6 @@ public class DonDatBan_GUI extends JPanel implements ActionListener{
         pnB.add(btnLamMoi); btnLamMoi.setMaximumSize(btnSize);
         pnB.add(Box.createHorizontalStrut(30));
         pnB.add(btnXem); btnXem.setMaximumSize(btnSize);
-        pnB.add(Box.createHorizontalStrut(30));
-        pnB.add(btnThanhToan); btnThanhToan.setMaximumSize(btnSize);
         bx1.add(pnB);
 
         // ======= BẢNG HÓA ĐƠN  =======
@@ -179,12 +185,7 @@ public class DonDatBan_GUI extends JPanel implements ActionListener{
         btnTimHD.addActionListener(this);
         btnLamMoi.addActionListener(this);
         btnXem.addActionListener(this);
-        btnThanhToan.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                handleThanhToanTuBang(); 
-            }
-        });
+       
         loadDonDatBanToTable();       
     }
     @Override
@@ -195,7 +196,7 @@ public class DonDatBan_GUI extends JPanel implements ActionListener{
         } else if (o.equals(btnLamMoi)) {
             handleLamMoi();
         } else if (o.equals(btnXem)) {
-            handleXemChiTiet();
+        	handleXem();
         }
     }
    
@@ -207,15 +208,141 @@ public class DonDatBan_GUI extends JPanel implements ActionListener{
         comboBoxThoiGian.setSelectedIndex(0);
         loadDonDatBanToTable(); 
     }
-    private void handleXemChiTiet() {
-        int row = table.getSelectedRow();
-        if (row != -1) {
-            String maDatBan = (String) model.getValueAt(row, 0);
-            JOptionPane.showMessageDialog(this, "Xem chi tiết cho Đơn Đặt Bàn: " + maDatBan + "\n(Hãy mở cửa sổ chi tiết tại đây)", "Xem Chi Tiết", JOptionPane.INFORMATION_MESSAGE);
-        } else {
-            JOptionPane.showMessageDialog(this, "Vui lòng chọn một đơn đặt bàn để xem chi tiết.", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
+    private void handleXem() {
+
+        int selectedRow = table.getSelectedRow();
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn đơn để xem!");
+            return;
         }
+
+        // Lấy mã đơn đặt bàn
+        String maDDB = table.getValueAt(selectedRow, 0).toString();
+        DonDatBan ddb = ddbDAO.getDonDatBanByMa(maDDB);
+
+        if (ddb == null) {
+            JOptionPane.showMessageDialog(this, "Không tìm thấy đơn đặt bàn!");
+            return;
+        }
+        Ban banDat = ddb.getBan();
+        String tenKH = ddb.getMaKH().getTenKH(); 
+        int soLuongKhach = ddb.getSoLuongKhach();
+        
+        double rawTienCoc = soLuongKhach * TIEN_COC_MOT_NGUOI;
+        double rawThanhTien = rawTienCoc;
+        double rawTienThua = 0.0; 
+
+        String tienCoc = df.format(rawTienCoc);
+        String vat = df.format(0.0); 
+        String thanhTien = df.format(rawThanhTien);
+        String tienKhach = df.format(rawThanhTien); 
+        String tienThua = df.format(rawTienThua);
+
+        String thoigiandat = new SimpleDateFormat("dd-MM-yyyy HH:mm")
+                .format(ddb.getNgayDat());
+        showHoaDonInDialog(
+            tienCoc,
+            vat,
+            thanhTien,
+            tienKhach,
+            tienThua,
+            tenKH,
+            thoigiandat,
+            banDat
+        );
     }
+ 
+    private void showHoaDonInDialog(String tienCoc, String vat, String thanhTien, String tienKhach, String tienThua, String tenKhachHang, String thoigiandat, Ban banHienTai) {
+         JDialog dialog = new JDialog((JFrame) SwingUtilities.getWindowAncestor(this), "In hóa đơn", true);
+         dialog.setSize(350, 450); 
+         dialog.setLocationRelativeTo(this);
+         dialog.setLayout(new BorderLayout(0, 0));
+         JPanel header = new JPanel();
+         header.setLayout(new BoxLayout(header, BoxLayout.Y_AXIS));
+         header.setBackground(Color.WHITE); 
+
+    
+         JLabel title = new JLabel("Quán Caffe CornCorn", SwingConstants.CENTER);
+         title.setFont(new Font("Segoe UI", Font.BOLD, 19));
+         title.setAlignmentX(Component.CENTER_ALIGNMENT);
+         
+    
+         JLabel dChi = new JLabel("<html><div style='text-align: center;'>ĐỊA CHỈ: 24 Lê Đức Thọ, p5, Gò Vấp</div></html>", SwingConstants.CENTER);
+         dChi.setFont(new Font("Segoe UI", Font.BOLD, 16));
+         dChi.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+         JLabel sdt = new JLabel("SĐT: 0242 545 567", SwingConstants.CENTER);
+         sdt.setFont(new Font("Segoe UI", Font.BOLD, 16));
+         sdt.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+         JLabel hd = new JLabel("HÓA ĐƠN ĐẶT BÀN", SwingConstants.CENTER);
+         hd.setFont(new Font("Segoe UI", Font.BOLD, 19));
+         hd.setAlignmentX(Component.CENTER_ALIGNMENT);
+         
+         header.add(title); 
+         header.add(dChi); 
+         header.add(sdt); 
+         header.add(Box.createVerticalStrut(5)); 
+         header.add(hd); 
+         header.add(Box.createVerticalStrut(10)); // Tách dòng
+
+         JPanel pnlMaDon = new JPanel(new BorderLayout());
+         JLabel maDDBLbl = new JLabel("Mã đơn: " + (maDDBHienTai != null ? maDDBHienTai : "Đang tạo..."), SwingConstants.LEFT);
+         maDDBLbl.setFont(new Font("Segoe UI", Font.BOLD, 13));
+         pnlMaDon.add(maDDBLbl, BorderLayout.WEST);
+
+         // Khách hàng
+         JPanel pnlKH = new JPanel(new BorderLayout());
+         JLabel kh = new JLabel("Khách hàng: "+ tenKhachHang, SwingConstants.LEFT);
+         kh.setFont(new Font("Segoe UI", Font.BOLD, 13));
+         pnlKH.add(kh, BorderLayout.WEST);
+
+         // Bàn đặt
+         JPanel pnlBan = new JPanel(new BorderLayout());
+         JLabel banLbl = new JLabel("Bàn đặt: " + banHienTai.getMaBan() + " - Số khách: " + banHienTai.getSucChua(), SwingConstants.LEFT);
+         banLbl.setFont(new Font("Segoe UI", Font.BOLD, 13));
+         pnlBan.add(banLbl, BorderLayout.WEST);
+
+         // Thời gian đặt
+         JPanel pnlTG = new JPanel(new BorderLayout());
+         JLabel tg = new JLabel("Thời gian đặt: " + thoigiandat, SwingConstants.LEFT);
+         tg.setFont(new Font("Segoe UI", Font.BOLD, 13));
+         pnlTG.add(tg, BorderLayout.WEST);
+
+         header.add(pnlMaDon);
+         header.add(pnlKH); 
+         header.add(pnlBan);
+         header.add(pnlTG);
+         
+         header.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
+         dialog.add(header, BorderLayout.NORTH);
+
+         JPanel footer = new JPanel(new GridLayout(7, 2, 5, 5));
+         footer.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+         footer.add(new JLabel("Tiền cọc:"));
+         footer.add(new JLabel(tienCoc, SwingConstants.RIGHT));
+         footer.add(new JLabel("VAT (0%):")); 
+         footer.add(new JLabel(vat, SwingConstants.RIGHT));
+         footer.add(new JLabel("Thành tiền:"));
+         footer.add(new JLabel(thanhTien, SwingConstants.RIGHT));
+         footer.add(new JLabel("Tiền khách trả:"));
+         footer.add(new JLabel(tienKhach, SwingConstants.RIGHT));
+         footer.add(new JLabel("Tiền thừa:"));
+         footer.add(new JLabel(tienThua, SwingConstants.RIGHT));
+
+         // Thêm một dòng chữ ký/cảm ơn
+         JPanel pnlBottom = new JPanel(new BorderLayout());
+         JLabel lblCamOn = new JLabel("<html><div style='text-align: center;'>Vui lòng giữ hóa đơn này<br>Hẹn gặp lại quý khách!</div></html>", SwingConstants.CENTER);
+         lblCamOn.setFont(new Font("Segoe UI", Font.ITALIC, 14));
+         lblCamOn.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
+         pnlBottom.add(footer, BorderLayout.NORTH);
+         pnlBottom.add(lblCamOn, BorderLayout.SOUTH);
+         
+         dialog.add(pnlBottom, BorderLayout.SOUTH);
+         
+         dialog.setVisible(true);
+    }
+
     
     private void loadDonDatBanToTable() {
         model.setRowCount(0); 
@@ -252,69 +379,7 @@ public class DonDatBan_GUI extends JPanel implements ActionListener{
             JOptionPane.showMessageDialog(this, "Tìm thấy " + ketQuaTimKiem.size() + " đơn đặt bàn.", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
         }
     }
-    private void handleThanhToanTuBang() {
-        int row = table.getSelectedRow();
-        if (row == -1) {
-            JOptionPane.showMessageDialog(this, "Vui lòng chọn 1 đơn đặt bàn để thanh toán.", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-        
-        String maDDB = (String) model.getValueAt(row, 0);
-        String trangThai = (String) model.getValueAt(row, 5); 
-        
-        if (trangThai.equals("Đã thanh toán")) {
-            JOptionPane.showMessageDialog(this, "Đơn đặt bàn này đã được thanh toán.", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
-            return;
-        }
-        DonDatBan ddb = DonDatBanDAO.getDonDatBanByMa(maDDB); 
-        if (ddb == null || ddb.getMaDatBan() == null) {
-            JOptionPane.showMessageDialog(this, "Không tìm thấy thông tin đơn đặt bàn hoặc bàn liên quan.", "Lỗi", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-        String tenKH = "Khách lẻ";
-        String sdt = "";
-        Ban banHienTai = null;
 
-        try {
-            KhachHang_DAO khachHangDAO = new KhachHang_DAO();
-            if (ddb.getMaKH() != null) {
-                KhachHang kh = khachHangDAO.getKhachHangByMa(ddb.getMaKH().getMaKH()); 
-                if (kh != null) {
-                    tenKH = kh.getTenKH();
-                    sdt = kh.getsDT();
-                }
-            }
-            Ban_DAO banDAO = new Ban_DAO();
-            String maBanDDB = ddb.getMaDatBan();
-            banHienTai = banDAO.getBanByMaDDB(maBanDDB);
-        } catch (Exception e) {
-            System.err.println("Lỗi khi lấy thông tin Khách hàng hoặc Bàn: " + e.getMessage());
-            JOptionPane.showMessageDialog(this, "Lỗi truy vấn dữ liệu đơn đặt bàn.", "Lỗi", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        if (banHienTai == null) {
-            JOptionPane.showMessageDialog(this, "Không tìm thấy thông tin bàn liên quan.", "Lỗi", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-        DefaultTableModel modelMonAn = DonDatBanDAO.getMonAnByMaDDB(maDDB); 
-        
-        if (modelMonAn == null) {
-             modelMonAn = new DefaultTableModel(new String[]{"Tên món", "Mã món", "SL", "Đơn giá", "Thành tiền"}, 0);
-        }
-        ChiTietDonDatBan_GUI chiTiet = new ChiTietDonDatBan_GUI(
-            (JFrame) SwingUtilities.getWindowAncestor(this), 
-            modelMonAn, 
-            false, 
-            banHienTai,
-            tenKH,
-            sdt 
-        );
-        chiTiet.setMaDDBHienTai(maDDB); 
-        chiTiet.setVisible(true);
-        loadDonDatBanToTable(); 
-    }
-    
     class RoundedButton extends JButton {
         private Color backgroundColor;
         private Color hoverColor;

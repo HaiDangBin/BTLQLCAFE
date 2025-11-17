@@ -10,6 +10,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.sql.Timestamp;
 
 import javax.swing.table.DefaultTableModel;
 
@@ -57,7 +58,7 @@ public class DonDatBan_DAO {
                     rs.getString("maDatBan"),   
                     rs.getString("tenKH"),      
                     rs.getInt("soLuongKhach"),   
-                    rs.getDate("ngayDat").toString(), 
+                    rs.getTimestamp("ngayDat").toString(), 
                     rs.getString("tenNV"),       
                     rs.getString("trangThai")    
                 };
@@ -144,7 +145,7 @@ public class DonDatBan_DAO {
                     rs.getString("maDatBan"),    
                     rs.getString("tenKH"),       
                     rs.getInt("soLuongKhach"),   
-                    rs.getDate("ngayDat").toString(), 
+                    rs.getTimestamp("ngayDat").toString(), 
                     rs.getString("tenNV"),       
                     rs.getString("trangThai")    
                 };
@@ -209,7 +210,7 @@ public class DonDatBan_DAO {
 	         PreparedStatement ps = con.prepareStatement(sql)) {
 
 	        ps.setString(1, ddb.getMaDatBan());
-	        ps.setDate(2, ddb.getNgayDat());
+	        ps.setTimestamp(2, ddb.getNgayDat());
 	        ps.setInt(3, ddb.getSoLuongKhach());
 	        ps.setString(4, ddb.getTrangThai());
 	        ps.setString(5, ddb.getMaKH().getMaKH());
@@ -253,7 +254,7 @@ public class DonDatBan_DAO {
 	        if (rs.next()) {
 	            DonDatBan ddb = new DonDatBan();
 	            ddb.setMaDatBan(rs.getString("maDatBan"));
-	            ddb.setNgayDat(rs.getDate("ngayDat"));
+	            ddb.setNgayDat(rs.getTimestamp("ngayDat"));
 	            ddb.setSoLuongKhach(rs.getInt("soLuongKhach"));
 	            ddb.setTrangThai(rs.getString("trangThai"));
 
@@ -290,7 +291,7 @@ public class DonDatBan_DAO {
 
 	                // === CƠ BẢN ===
 	                ddb.setMaDatBan(rs.getString("maDatBan"));
-	                ddb.setNgayDat(rs.getDate("ngayDat"));
+	                ddb.setNgayDat(rs.getTimestamp("ngayDat"));
 	                ddb.setSoLuongKhach(rs.getInt("soLuongKhach"));
 	                ddb.setTrangThai(rs.getString("trangThai"));
 
@@ -363,7 +364,7 @@ public class DonDatBan_DAO {
 	            if (rs.next()) {
 	                // LẤY DỮ LIỆU CƠ BẢN
 	                String maDatBan = rs.getString("maDatBan");
-	                java.sql.Date ngayDat = rs.getDate("ngayDat");
+	                java.sql.Timestamp ngayDat = rs.getTimestamp("ngayDat");
 	                int soLuongKhach = rs.getInt("soLuongKhach");
 	                String trangThai = rs.getString("trangThai");
 
@@ -418,10 +419,10 @@ public class DonDatBan_DAO {
         PreparedStatement stmt = null;
         ResultSet rs = null;
         DecimalFormat df = new DecimalFormat("#,###");
-        String sql = "SELECT SP.tenSP, CTDDB.soLuong, SP.giaBan " +
+        String sql = "SELECT SP.tenSP, CTDDB.soLuongSP, SP.gia " +
                      "FROM ChiTietDonDatBan CTDDB " +
                      "JOIN SanPham SP ON CTDDB.maSP = SP.maSP " +
-                     "WHERE CTDDB.maDDB = ?";
+                     "WHERE CTDDB.maDatBan = ?";
 
         try {
             stmt = con.prepareStatement(sql);
@@ -430,8 +431,8 @@ public class DonDatBan_DAO {
 
             while (rs.next()) {
                 String tenMon = rs.getString("tenSP");
-                int soLuong = rs.getInt("soLuong");
-                double donGia = rs.getDouble("giaBan");
+                int soLuong = rs.getInt("soLuongSP");
+                double donGia = rs.getDouble("gia");
                 double thanhTien = soLuong * donGia;
 
 
@@ -500,7 +501,7 @@ public class DonDatBan_DAO {
 	                // Lấy dữ liệu Đơn đặt bàn
 	                String maDDB = rs.getString("maDatBan");
 	                String trangThai = rs.getString("trangThai");
-	                java.sql.Date ngayDat = rs.getDate("ngayDat"); 
+	                java.sql.Timestamp ngayDat = rs.getTimestamp("ngayDat"); 
 	                int soLuongKhach = rs.getInt("soLuongKhach");
 	                
 	                // Lấy thông tin Nhân viên
@@ -557,7 +558,7 @@ public class DonDatBan_DAO {
 	            ddb.setBan(ban);            
 	            ddb.setSoLuongKhach(rs.getInt("soLuongKhach"));
 	            ddb.setTrangThai(rs.getString("trangThai"));
-	            ddb.setNgayDat(rs.getDate("ngayDat")); 
+	            ddb.setNgayDat(rs.getTimestamp("ngayDat")); 
 	        } else {
 	             System.out.println("Không tìm thấy Đơn Đặt Bàn đang hoạt động. Dùng Mã KH mặc định: KH000");
 	        }
@@ -605,7 +606,7 @@ public class DonDatBan_DAO {
 	            
 	            // Set các field cơ bản (String/Date/Int)
 	            ddb.setMaDatBan(rs.getString("maDatBan"));
-	            ddb.setNgayDat(rs.getDate("ngayDat"));
+	            ddb.setNgayDat(rs.getTimestamp("ngayDat"));
 	            ddb.setSoLuongKhach(rs.getInt("soLuongKhach"));
 	            ddb.setTrangThai(rs.getString("trangThai"));
 	            

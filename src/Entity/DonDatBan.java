@@ -1,18 +1,18 @@
 package Entity;
 
-import java.sql.Date;
+
 import java.sql.Time;
 import java.time.LocalDateTime;
 
 public class DonDatBan {
 	private String maDatBan;
-	private Date ngayDat;
+	private java.sql.Timestamp ngayDat;
 	private int soLuongKhach;
 	private String trangThai;
 	private KhachHang maKH;
 	private NhanVien maNV;
 	private Ban ban;
-	public DonDatBan(String maDatBan, Date ngayDat, int soLuongKhach, String trangThai, KhachHang maKH, NhanVien maNV) {
+	public DonDatBan(String maDatBan, java.sql.Timestamp ngayDat, int soLuongKhach, String trangThai, KhachHang maKH, NhanVien maNV) {
 		super();
 		this.maDatBan = maDatBan;
 		this.ngayDat = ngayDat;
@@ -38,10 +38,10 @@ public class DonDatBan {
 	public void setMaDatBan(String maDatBan) {
 		this.maDatBan = maDatBan;
 	}
-	public Date getNgayDat() {
+	public java.sql.Timestamp getNgayDat() {
 		return ngayDat;
 	}
-	public void setNgayDat(Date ngayDat) {
+	public void setNgayDat(java.sql.Timestamp ngayDat) {
 		this.ngayDat = ngayDat;
 	}
 	public int getSoLuongKhach() {

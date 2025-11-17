@@ -68,8 +68,7 @@ public class DatBan_GUI extends JPanel{
 	    ban_DAO = new Ban_DAO();
 	    donDatBanDAO = new DonDatBan_DAO();
         khachHangDAO = new KhachHang_DAO();
-	    
-	    
+	        
 	    setBackground(Color.WHITE); 
 	    
 	    // ===== Setup North Panel =====
@@ -365,12 +364,33 @@ public class DatBan_GUI extends JPanel{
 	                "Lỗi dữ liệu", JOptionPane.ERROR_MESSAGE);
 	            return;
 	        }
+	        
 	        KhachHang kh = ddbHienTai.getMaKH();
 	        String tenKH = (kh != null) ? kh.getTenKH() : "Khách lẻ";
 	        String sdtKH = (kh != null) ? kh.getsDT() : "";
 	        DefaultTableModel emptyModel = new DefaultTableModel(new String[] {"Tên món", "SL", "Đơn giá", "Thành tiền"}, 0);
 	        
-	        // 6. Mở dialog ChiTietDonDatBan_GUI
+	        // ⭐ BẮT ĐẦU PHẦN SỬA LỖI: TRÍCH XUẤT NGÀY/GIỜ/PHÚT TỪ DDB CŨ
+	        java.sql.Timestamp ngayGioDat = ddbHienTai.getNgayDat();
+	        String ngayDatStr = "";
+	        String gioStr = "00";
+	        String phutStr = "00";
+	        
+	        if (ngayGioDat != null) {
+	            java.util.Date utilNgayGioDat = new java.util.Date(ngayGioDat.getTime());
+	            // Sử dụng java.text.SimpleDateFormat cho định dạng (Cần import nếu chưa có)
+	            java.text.SimpleDateFormat ngayFormat = new java.text.SimpleDateFormat("dd-MM-yyyy");
+	            java.text.SimpleDateFormat gioFormat = new java.text.SimpleDateFormat("HH");
+	            java.text.SimpleDateFormat phutFormat = new java.text.SimpleDateFormat("mm");
+	            
+	            try {
+	                ngayDatStr = ngayFormat.format(utilNgayGioDat);
+	                gioStr = gioFormat.format(utilNgayGioDat);
+	                phutStr = phutFormat.format(utilNgayGioDat);
+	            } catch (Exception ex) {
+	                System.err.println("Lỗi định dạng thời gian từ DDB: " + ex.getMessage());
+	            }
+	        }
 	        JFrame parentFrame = (JFrame) SwingUtilities.getWindowAncestor(this);
 	        ChiTietDonDatBan_GUI chiTietDialog = new ChiTietDonDatBan_GUI(
 	            parentFrame,
@@ -378,11 +398,14 @@ public class DatBan_GUI extends JPanel{
 	            false,            
 	            selectedBan,     
 	            tenKH,          
-	            sdtKH            
+	            sdtKH,
+	            ngayDatStr, 
+	            gioStr,     
+	            phutStr     
 	        );        
-	        chiTietDialog.setMaDDBHienTai(ddbHienTai.getMaDatBan()); //
-	        chiTietDialog.setVisible(true);	        
-	        // Tải lại danh sách bàn 
+	        
+	        chiTietDialog.setMaDDBHienTai(ddbHienTai.getMaDatBan()); 
+	        chiTietDialog.setVisible(true);
 	        loadBanVaoGUI();
 	        programmaticallySelectBan(null);
 
@@ -478,6 +501,7 @@ public class DatBan_GUI extends JPanel{
 	    }
 	}
 	
+
 	public void moHoaDonDatCoc(Ban banDuocChon, String tenKH, String sdt) {
 	    // 1. Kiểm tra trạng thái
 	    if (!banDuocChon.getTrangThai().equalsIgnoreCase("Trống")) {
@@ -498,21 +522,34 @@ public class DatBan_GUI extends JPanel{
 
 	    if (choice == JOptionPane.CLOSED_OPTION) {
 	        return; 
-	    }	    
+	    }    
 	    boolean isChuyenKhoan = (choice == 1);
 	    String[] cols = {"Tên món", "SL", "Đơn giá", "Thành tiền"};
-	    DefaultTableModel emptyModel = new DefaultTableModel(cols, 0);
+	    DefaultTableModel emptyModel = new DefaultTableModel(cols, 0);	    
+	    
+	    // Lấy thời gian hiện tại
+	    java.util.Date now = new java.util.Date();
+	    java.text.SimpleDateFormat ngayFormat = new java.text.SimpleDateFormat("dd-MM-yyyy");
+	    java.text.SimpleDateFormat gioFormat = new java.text.SimpleDateFormat("HH");
+	    java.text.SimpleDateFormat phutFormat = new java.text.SimpleDateFormat("mm");
+
+	    String ngayHienTai = ngayFormat.format(now);
+	    String gioHienTai = gioFormat.format(now);
+	    String phutHienTai = phutFormat.format(now);
 	    ChiTietDonDatBan_GUI chiTiet = new ChiTietDonDatBan_GUI(
 	        (JFrame) SwingUtilities.getWindowAncestor(this), 
 	        emptyModel, 
 	        isChuyenKhoan, 
 	        banDuocChon, 
 	        tenKH, 
-	        sdt
-	    );
+	        sdt,
+	        ngayHienTai, 
+	        gioHienTai,  
+	        phutHienTai  
+	    );	    
 	    chiTiet.setVisible(true);
 	    loadBanVaoGUI();; 
-	}	
+	}
 	class DatBanMoi_Dialog extends JDialog {
 		private DatBan_GUI parentGUI;
 	    private JTextField txtTenKhachHang, txtSoDienThoai;
@@ -686,19 +723,9 @@ public class DatBan_GUI extends JPanel{
 	                    JOptionPane.showMessageDialog(null, "Số điện thoại không hợp lệ (10 số, bắt đầu bằng 0)");
 	                    return;
 	                }
-	                java.sql.Timestamp ngayGioDatSQL = null;
-	                java.time.format.DateTimeFormatter formatterNgay = java.time.format.DateTimeFormatter.ofPattern("dd-MM-yyyy");
-
-	                try {
-	                    java.time.LocalDate localDate = java.time.LocalDate.parse(ngayDatStr, formatterNgay); 
-	                    java.time.LocalDateTime now = java.time.LocalDateTime.now();
-	                    java.time.LocalDateTime ngayGioDatLocal = localDate.atTime(now.getHour(), now.getMinute(), 0);
-	                    ngayGioDatSQL = java.sql.Timestamp.valueOf(ngayGioDatLocal);
-
-	                } catch (java.time.format.DateTimeParseException ex) {
-	                    JOptionPane.showMessageDialog(null, "Ngày đặt không hợp lệ. Vui lòng nhập theo định dạng dd-MM-yyyy.", "Lỗi Định dạng", JOptionPane.ERROR_MESSAGE);
-	                    return;
-	                }
+	                
+	                String gioStr = cboGio.getSelectedItem().toString();
+	                String phutStr = cboPhut.getSelectedItem().toString();	              
 	                Ban banDuocChon = ban_DAO.layBanTheoMa(maBanDuocChon);
 
 	                if (banDuocChon == null) {
@@ -716,7 +743,10 @@ public class DatBan_GUI extends JPanel{
 	                    false,         
 	                    banDuocChon,  
 	                    tenKH, 
-	                    sdt
+	                    sdt,
+	                    ngayDatStr, 
+	                    gioStr,     
+	                    phutStr     
 	                );
 	                
 	                dialog.setVisible(true);
@@ -728,8 +758,14 @@ public class DatBan_GUI extends JPanel{
 	    private void handleXacNhanDat() {
 	        String tenKH = txtTenKhachHang.getText().trim();
 	        String sdt = txtSoDienThoai.getText().trim();
-	        if (tenKH.isEmpty() || sdt.isEmpty()) {
-	            JOptionPane.showMessageDialog(this, "Vui lòng nhập đầy đủ Tên và SĐT khách hàng.", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
+	        
+
+	        String ngayDatStr = txtNgayDat.getText().trim(); 
+	        String gioStr = cboGio.getSelectedItem().toString(); 
+	        String phutStr = cboPhut.getSelectedItem().toString(); 
+
+	        if (tenKH.isEmpty() || sdt.isEmpty() || ngayDatStr.isEmpty()) {
+	            JOptionPane.showMessageDialog(this, "Vui lòng nhập đầy đủ Tên, SĐT và Ngày đặt.", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
 	            return;
 	        }
 
@@ -737,20 +773,24 @@ public class DatBan_GUI extends JPanel{
 	            JOptionPane.showMessageDialog(this, "Số điện thoại không hợp lệ (phải là 10 số, bắt đầu bằng 0).", "Lỗi nhập liệu", JOptionPane.ERROR_MESSAGE);
 	            return;
 	        }
-
+	      
 	        try {
 	            Ban banDuocChon = ban_DAO.layBanTheoMa(this.maBanDuocChon);
 	            if (banDuocChon == null) {
 	                JOptionPane.showMessageDialog(this, "Không tìm thấy thông tin bàn: " + this.maBanDuocChon, "Lỗi", JOptionPane.ERROR_MESSAGE);
 	                return;
 	            }
+
 	            ChiTietDonDatBan_GUI chiTiet = new ChiTietDonDatBan_GUI(
 	                (JFrame) this.getParent(),
 	                new javax.swing.table.DefaultTableModel(new String[] {"Tên món","SL","Đơn giá","Thành tiền"}, 0), 
 	                false,   
 	                banDuocChon,
 	                tenKH,
-	                sdt
+	                sdt,
+	                ngayDatStr, 
+	                gioStr,     
+	                phutStr     
 	            );
 	            chiTiet.setVisible(true);
 	        } catch (Exception e) {
@@ -785,17 +825,15 @@ public class DatBan_GUI extends JPanel{
 	            }
 	            NhanVien nv = new NhanVien(); 
 	            nv.setMaNV(lblMaNV.getText()); 
-
 	            // 5. TẠO ĐƠN ĐẶT BÀN
 	            String maDDB_moi = donDatBanDAO.phatSinhMaDatBan(); 
-	            java.sql.Date ngayDat = new java.sql.Date(System.currentTimeMillis()); 
+	            java.sql.Timestamp ngayDat = new java.sql.Timestamp(System.currentTimeMillis());
 	            int soKhach = sucChuaBan;
 	            String trangThaiDatBan = (String) cmbTrangThai.getSelectedItem();
 	            String trangThaiBanMoi = trangThaiDatBan.equals("Đã đến") ? "Đang phục vụ" : "Đặt trước";
 
 	            DonDatBan ddbMoi = new DonDatBan(maDDB_moi, ngayDat, soKhach, trangThaiBanMoi, kh, nv);
 
-	            // 6. LƯU VÀO DATABASE VÀ CẬP NHẬT BÀN
 	            Ban banMoi = new Ban(maBanDuocChon, "", soKhach, trangThaiBanMoi);
 	            ddbMoi.setBan(banMoi);
 	            boolean taoDDBSuccess = donDatBanDAO.createDonDatBan(ddbMoi); 
@@ -853,14 +891,32 @@ public class DatBan_GUI extends JPanel{
 	        String[] cols = {"Tên món", "SL", "Đơn giá", "Thành tiền"};
 	        DefaultTableModel emptyModel = new DefaultTableModel(cols, 0);
 
+	        // ⭐ BẮT ĐẦU PHẦN SỬA LỖI: LẤY THỜI GIAN HIỆN TẠI VÀ TRUYỀN VÀO CONSTRUCTOR
+	        
+	        // Lấy thời gian hiện tại
+	        java.util.Date now = new java.util.Date();
+	        java.text.SimpleDateFormat ngayFormat = new java.text.SimpleDateFormat("dd-MM-yyyy");
+	        java.text.SimpleDateFormat gioFormat = new java.text.SimpleDateFormat("HH");
+	        java.text.SimpleDateFormat phutFormat = new java.text.SimpleDateFormat("mm");
+
+	        String ngayHienTai = ngayFormat.format(now);
+	        String gioHienTai = gioFormat.format(now);
+	        String phutHienTai = phutFormat.format(now);
+
+	        // Gọi constructor mới (9 tham số)
 	        ChiTietDonDatBan_GUI chiTiet = new ChiTietDonDatBan_GUI(
 	            (JFrame) SwingUtilities.getWindowAncestor(this), 
 	            emptyModel, 
 	            isChuyenKhoan, 
 	            selectedBan, 
 	            tenKH, 
-	            sdt
+	            sdt,
+	            ngayHienTai, // Tham số mới: Ngày
+	            gioHienTai,  // Tham số mới: Giờ
+	            phutHienTai  // Tham số mới: Phút
 	        );
+	        // ⭐ KẾT THÚC PHẦN SỬA LỖI
+	        
 	        chiTiet.setVisible(true);
 	        loadBanVaoGUI(); 
 	    }
@@ -920,29 +976,22 @@ private void programmaticallySelectBan(String maBan) {
 	    btnDatBan.setEnabled(false);
 	    btnDatBan.setBackground(Color.GRAY);
 	    
-	    // Nếu mã bàn tìm kiếm là null, kết thúc hàm
 	    if (maBan == null || maBan.isEmpty()) {
 	        pDanhSachBan.revalidate();
 	        pDanhSachBan.repaint();
 	        return;
 	    }
-
-	    // 2. Lặp lại để tìm và chọn bàn cần tìm
 	    for (Component comp : pDanhSachBan.getComponents()) {
 	        if (comp instanceof BanAnPanel) {
 	            BanAnPanel panel = (BanAnPanel) comp;
 	            if (panel.ban.getMaBan().equalsIgnoreCase(maBan)) { 
-	                // Gán biến chọn
+	               
 	                selectedPanel = panel;
 	                selectedBan = panel.ban;
-	                
-	                // Làm nổi bật border (Màu đỏ 3px)
 	                panel.setBorder(BorderFactory.createLineBorder(Color.RED, 3)); 
-	                
-	                // Cập nhật ô Mã bàn
+
 	                txtMaBan.setText(maBan);
 	                
-	                // Cập nhật trạng thái nút Đặt Bàn
 	                if ("Trống".equals(selectedBan.getTrangThai().trim())) {
 	                    btnDatBan.setEnabled(true);
 	                    btnDatBan.setBackground(new Color(0,102,102)); 
@@ -950,8 +999,6 @@ private void programmaticallySelectBan(String maBan) {
 	                    btnDatBan.setEnabled(false);
 	                    btnDatBan.setBackground(Color.GRAY); 
 	                }
-	                
-	                // Cuộn đến vị trí bàn
 	                pDanhSachBan.scrollRectToVisible(panel.getBounds());
 	                break;
 	            }
@@ -1237,11 +1284,8 @@ private void handleTimKiemBanTheoMaDDB(String maDDB) {
 	            lblIcon.setForeground(Color.RED);
 	        }
 	        lblIcon.setHorizontalAlignment(SwingConstants.CENTER);
-	        
-	        // Thêm icon vào phần trung tâm 
 	        add(lblIcon, BorderLayout.CENTER);
 	        
-	        // Panel để chứa thông tin chi tiết 
 	        JPanel pInfo = new JPanel(new BorderLayout());
 	        pInfo.setBackground(Color.WHITE);
 	        pInfo.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
@@ -1365,7 +1409,6 @@ private void handleTimKiemBanTheoMaDDB(String maDDB) {
 	        }
 	    }
 	    
-//	    // Inner class RoundedTextField
 	    class RoundedTextField extends JTextField {
 	        public RoundedTextField(String placeholder) {
 	            super(placeholder);

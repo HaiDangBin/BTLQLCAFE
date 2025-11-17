@@ -28,14 +28,13 @@ public class ChiTietHoaDonSanPham_GUI extends JPanel {
 	private DefaultTableModel modelMonAnGoc;
 	private String maBanHienTai;
     private String maNVHienTai;
-    private String maKHHienTai; // Mã KH được truyền vào ban đầu (có thể là null)
+    private String maKHHienTai; 
     private String maHDHienTai;
 
 	private double tongTienThuc;
 	private double vatThuc;
 	private double thanhTienThuc;
     
-    // Biến lưu trữ tên KH thực tế lấy từ Đơn Đặt Bàn
     private String tenKHHienTai = "Khách vãng lai"; 
 
 	private JLabel lblTienKhachTraStatic;
@@ -54,7 +53,7 @@ public class ChiTietHoaDonSanPham_GUI extends JPanel {
 		this.isChuyenKhoanMode = isChuyenKhoan;
 		this.maBanHienTai = maBan;
         this.maNVHienTai = maNV;
-        this.maKHHienTai = maKH; // Lưu mã KH (nếu có)
+        this.maKHHienTai = maKH;
 	
 		setLayout(new BorderLayout(10, 10));
 		
@@ -85,7 +84,6 @@ public class ChiTietHoaDonSanPham_GUI extends JPanel {
 		pnlHeader.add(lblHD);
 		add(pnlHeader, BorderLayout.NORTH);
 
-		// Khởi tạo modelMonAnGoc với cấu trúc chuẩn để lưu DB (MaMon, Tên, SL, Đơn giá, TT)
 		this.modelMonAnGoc = new DefaultTableModel(new Object[] { "MaMon", "Tên món", "SL", "Đơn giá", "Thành tiền" }, 0); 
 
 		this.tongTienThuc = 0;
@@ -104,11 +102,7 @@ public class ChiTietHoaDonSanPham_GUI extends JPanel {
 			double donGia = Double.parseDouble(donGiaStr);
 			double thanhTien = sl * donGia;
 			this.tongTienThuc += thanhTien;
-
-			// Thêm vào model chi tiết (modelMonAnGoc) để lưu CSDL
 			this.modelMonAnGoc.addRow(new Object[] { maMon, tenMon, sl, donGia, thanhTien });
-
-			// Thêm vào model hiển thị (trong dialog này)
 			tblModel.addRow(new Object[] { tenMon, sl, df.format(donGia), df.format(thanhTien) });
 		}
 
@@ -168,7 +162,6 @@ public class ChiTietHoaDonSanPham_GUI extends JPanel {
 
 		pnlAction.add(pnlButtons, BorderLayout.CENTER);
 
-		// Sự kiện cho nút IN (Tiền mặt)
 		btnIn.addActionListener(e -> xuLyInHoaDon()); 
 	
 		btnDong.addActionListener(e -> {
@@ -184,7 +177,6 @@ public class ChiTietHoaDonSanPham_GUI extends JPanel {
 		pnlFooterContainer.add(pnlAction);
 
 		if (this.isChuyenKhoanMode) {
-			// Logic cho Chuyển Khoản
 			txtTienKhachTra.setVisible(false);
 			lblTienThuaStatic.setVisible(false);
 			lblTienThua.setVisible(false);
@@ -198,7 +190,6 @@ public class ChiTietHoaDonSanPham_GUI extends JPanel {
 				lblTienKhachTraStatic.setText("Đã nhận chuyển khoản:");
 			}
 
-			// Bỏ action listener cũ của btnIn và thêm action mới
 			for (ActionListener al : this.btnIn.getActionListeners()) {
 				this.btnIn.removeActionListener(al);
 			}
@@ -207,8 +198,7 @@ public class ChiTietHoaDonSanPham_GUI extends JPanel {
 			this.btnIn.addActionListener(e -> {
 				handleThanhToanChuyenKhoan();
 			});
-			
-			// Hiển thị lại nút
+
 			pnlButtons.setVisible(true);
 			pnlButtons.removeAll();
 			pnlButtons.add(btnDong);
@@ -220,18 +210,12 @@ public class ChiTietHoaDonSanPham_GUI extends JPanel {
 		add(pnlFooterContainer, BorderLayout.SOUTH);
 	}
 	
-	/**
-	 * Phương thức xử lý khi nhấn nút IN (Tiền mặt)
-	 * Luồng chuẩn: Validate -> Save -> Show Dialog -> Update GUI -> Close
-	 */
 	private void xuLyInHoaDon() {
 	    try {
 	        if (modelMonAnGoc.getRowCount() == 0) {
 	            JOptionPane.showMessageDialog(this, "Chưa có món để in!");
 	            return;
 	        }
-
-	        // 1. Kiểm tra tiền khách trả trước khi gọi lưu
 	        String text = txtTienKhachTra.getText().trim().replace(",", "").replace("VND", "");
 	        if (text.isEmpty()) {
 	            JOptionPane.showMessageDialog(this, "Vui lòng nhập tiền khách trả!", "Lỗi", JOptionPane.ERROR_MESSAGE);
@@ -243,17 +227,11 @@ public class ChiTietHoaDonSanPham_GUI extends JPanel {
 	             JOptionPane.showMessageDialog(this, "Tiền khách trả không đủ!", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
 	             return;
 	        }
-
-	        // 2. Gọi hàm xử lý lưu (Hàm này sẽ lưu DB và cập nhật this.tenKHHienTai)
 	        saveHoaDonTienMat();
-	        
-	        // 3. Gọi hàm hiển thị dialog (Hàm này chỉ hiển thị)
 	        handleInHoaDon(khachTra, thanhTienThuc);
-	        
-	        // 4. Cập nhật HoaDon_GUI (nếu có)
+
 	        capNhatHoaDonGUI();
-	        
-	        // 5. Đóng dialog (ChiTietHoaDonSanPham_GUI)
+
 	        Window window = SwingUtilities.getWindowAncestor(this);
 	        if (window != null) window.dispose();
 
@@ -265,54 +243,35 @@ public class ChiTietHoaDonSanPham_GUI extends JPanel {
 	    }
 	}
 
-	/**
-     * Cập nhật lại danh sách hóa đơn trên GUI chính (nếu tìm thấy)
-     */
 	private void capNhatHoaDonGUI() {
-        // Tìm cửa sổ JFrame cha
         Window ancestorWindow = SwingUtilities.getWindowAncestor(this);
         if (ancestorWindow == null) return;
-
-        // Tìm cửa sổ cha của cửa sổ đó (có thể là JFrame chính)
         Window owner = ancestorWindow.getOwner();
         if (owner instanceof JFrame) {
             JFrame mainFrame = (JFrame) owner;
-            // Duyệt qua các component của JFrame chính
             Component[] components = mainFrame.getContentPane().getComponents();
             for (Component comp : components) {
-                // Giả định GUI chính dùng JTabbedPane
                 if (comp instanceof JTabbedPane) {
                     JTabbedPane tabbedPane = (JTabbedPane) comp;
                     for (int i = 0; i < tabbedPane.getTabCount(); i++) {
                         Component tabComponent = tabbedPane.getComponentAt(i);
-                        // Nếu tìm thấy HoaDon_GUI, gọi hàm loadHoaDon()
                         if (tabComponent instanceof HoaDon_GUI) {
                             ((HoaDon_GUI) tabComponent).loadHoaDon();
-                            return; // Dừng lại sau khi tìm thấy
+                            return; 
                         }
                     }
                 }
             }
         }
 	}
-
-
-	/**
-     * Phương thức chỉ dùng để hiển thị JDialog In Hóa Đơn
-     */
 	private void handleInHoaDon(double khachTra, double thanhTien) {
 	    try {
 	        double tienThua = khachTra - thanhTien;
-
-	        // Hiển thị dialog chi tiết hóa đơn
-            // Sử dụng this.tenKHHienTai đã được cập nhật trong saveHoaDonTienMat()
 	        showHoaDonInDialog(modelMonAnGoc, maHDHienTai, 
                     df.format(tongTienThuc), df.format(vatThuc), df.format(thanhTienThuc),
 	                df.format(khachTra), df.format(tienThua), this.tenKHHienTai); 
 	        
 	        JOptionPane.showMessageDialog(this, "In hóa đơn thành công!");
-
-	        // Clear order table ở parent (GoiMon_GUI)
 	        if (parentPanel != null) {
 	            parentPanel.clearOrderTable1();
 	        }
@@ -324,21 +283,14 @@ public class ChiTietHoaDonSanPham_GUI extends JPanel {
 	        ex.printStackTrace();
 	    }
 	}
-	
-	/**
-	 * Phương thức TÁCH BIỆT: Lưu Hóa Đơn và Chi Tiết Hóa Đơn (Tiền mặt)
-     * Cập nhật this.maHDHienTai và this.tenKHHienTai
-	 */
 	private void saveHoaDonTienMat() {
 	    try {
-	        // ===================== 1. LẤY ĐƠN ĐẶT BÀN & TÊN KHÁCH HÀNG =====================
 	        DonDatBan_DAO ddbDAO = new DonDatBan_DAO();
-            // Đảm bảo bạn đã sửa lỗi LIMIT 1 -> TOP 1 trong phương thức DAO này
 	        DonDatBan ddb = ddbDAO.getLatestActiveDonDatBanByMaBan(this.maBanHienTai); 
 
 	        String maDatBan = null;
-	        String maKH = "KH000"; // Mặc định khách vãng lai
-            this.tenKHHienTai = "Khách vãng lai"; // Reset về mặc định
+	        String maKH = "KH000"; 
+            this.tenKHHienTai = "Khách vãng lai"; 
 
 	        if (ddb != null) {
 	            maDatBan = ddb.getMaDatBan();
@@ -346,20 +298,15 @@ public class ChiTietHoaDonSanPham_GUI extends JPanel {
 	                maKH = ddb.getMaKH().getMaKH();
 	            }
 	        }
-	        
-            // Lấy Tên Khách Hàng nếu không phải khách vãng lai
 	        if (!maKH.equals("KH000")) {
 	            KhachHang kh = new KhachHang_DAO().findKhachHangByMa(maKH);
 	            if (kh != null && kh.getTenKH() != null) {
-	                this.tenKHHienTai = kh.getTenKH(); // Cập nhật tên khách hàng
+	                this.tenKHHienTai = kh.getTenKH(); 
 	            }
 	        }
-	        
-	        // ===================== 2. TẠO MÃ HÓA ĐƠN VÀ ENTITY =====================
-	        this.maHDHienTai = taoMaHoaDonNgauNhien(); // Lưu mã HD vào biến của lớp
+	        this.maHDHienTai = taoMaHoaDonNgauNhien();
 	        String maNV = this.maNVHienTai;
             if (maNV == null || maNV.trim().isEmpty()) {
-                // Lấy mã NV từ LoginForm nếu chưa có
                 maNV = LoginForm.tkLogin.getNhanVien().getMaNV();
             }
 	        String maKM = null;
@@ -368,24 +315,20 @@ public class ChiTietHoaDonSanPham_GUI extends JPanel {
 	        HoaDon hd = new HoaDon(
 	                maHDHienTai,
 	                maNV,
-	                maKH,       // <--- maKH từ Đơn Đặt Bàn
+	                maKH,       
 	                maKM,
-	                maDatBan,   // <--- maDatBan từ Đơn Đặt Bàn
+	                maDatBan,   
 	                sqlNgayLap
 	        );
-	        hd.setTongTien(this.thanhTienThuc); // Lưu tổng tiền đã bao gồm VAT
+	        hd.setTongTien(this.thanhTienThuc); 
 
 	        HoaDon_DAO hdDAO = new HoaDon_DAO();
-
-	        // ===================== 3. INSERT HÓA ĐƠN =====================
 	        if (!hdDAO.insert(hd)) {
 	            JOptionPane.showMessageDialog(this,	
 	                "❌ Lưu hóa đơn thất bại!", "SQL ERROR",
 	                JOptionPane.ERROR_MESSAGE);
 	            return;
 	        }
-
-	        // ===================== 4. LƯU CHI TIẾT HÓA ĐƠN =====================
 	        ChiTietHoaDon_DAO ctDAO = new ChiTietHoaDon_DAO();
 	        for (int i = 0; i < modelMonAnGoc.getRowCount(); i++) {
 	            String maSP = modelMonAnGoc.getValueAt(i, 0).toString();
@@ -396,8 +339,6 @@ public class ChiTietHoaDonSanPham_GUI extends JPanel {
 	                new ChiTietHoaDon(maHDHienTai, maSP, soLuong, donGia)
 	            );
 	        }
-
-	        // ===================== 5. CẬP NHẬT TRẠNG THÁI DDB VÀ BÀN =====================
 	        if (maDatBan != null) {
 	            ddbDAO.capNhatTrangThai(maDatBan, "Đã thanh toán"); 
 	        }
@@ -424,34 +365,26 @@ public class ChiTietHoaDonSanPham_GUI extends JPanel {
 			if (JOptionPane.showConfirmDialog(this, "Xác nhận thanh toán CHUYỂN KHOẢN và in hóa đơn?", "Xác nhận",
 					JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION)
 				return;
-
-			// ===================== 1. LẤY DỮ LIỆU ĐƠN ĐẶT BÀN & TÊN KHÁCH HÀNG =====================
             DonDatBan_DAO ddbDAO = new DonDatBan_DAO();
-            // Đảm bảo bạn đã sửa lỗi LIMIT 1 -> TOP 1 trong phương thức DAO này
             DonDatBan ddb = ddbDAO.getLatestActiveDonDatBanByMaBan(this.maBanHienTai); 
 
             String maDatBan = null;
-            String maKH = "KH000"; // Mặc định khách vãng lai
-            this.tenKHHienTai = "Khách vãng lai"; // Reset về mặc định
-
+            String maKH = "KH000"; 
+            this.tenKHHienTai = "Khách vãng lai"; 
             if (ddb != null) {
                 maDatBan = ddb.getMaDatBan();
                 if (ddb.getMaKH() != null && ddb.getMaKH().getMaKH() != null) {
                     maKH = ddb.getMaKH().getMaKH();
                 }
             }
-
-            // Lấy Tên Khách Hàng nếu không phải khách vãng lai
             if (!maKH.equals("KH000")) {
 	            KhachHang kh = new KhachHang_DAO().findKhachHangByMa(maKH);
 	            if (kh != null && kh.getTenKH() != null) {
-	                this.tenKHHienTai = kh.getTenKH(); // Cập nhật tên khách hàng
+	                this.tenKHHienTai = kh.getTenKH();
 	            }
 	        }
-            // ===================================================================
-
 			String maHD = taoMaHoaDonNgauNhien();
-            this.maHDHienTai = maHD; // Lưu lại mã HĐ
+            this.maHDHienTai = maHD; 
             String maNV = this.maNVHienTai;
             if (maNV == null || maNV.trim().isEmpty()) {
                 maNV = LoginForm.tkLogin.getNhanVien().getMaNV();
@@ -465,15 +398,14 @@ public class ChiTietHoaDonSanPham_GUI extends JPanel {
 				 	maNV,	 	
 				 	maKH,	 	
 				 	maKM,	 	
-				 	maDatBan,   // <--- Gán maDatBan đã lấy
+				 	maDatBan,   
 				 	sqlNgayLap	 	
 		 	 	);
-            hd.setTongTien(this.thanhTienThuc); // Lưu tổng tiền đã bao gồm VAT
+            hd.setTongTien(this.thanhTienThuc); 
 
 			HoaDon_DAO dao = new HoaDon_DAO();
 
 			if (dao.insert(hd)) {
-                // ===================== 2. LƯU CHI TIẾT HÓA ĐƠN =====================
                 ChiTietHoaDon_DAO ctDAO = new ChiTietHoaDon_DAO();
                 for (int i = 0; i < modelMonAnGoc.getRowCount(); i++) {
                     String maSP = modelMonAnGoc.getValueAt(i, 0).toString();
@@ -484,8 +416,6 @@ public class ChiTietHoaDonSanPham_GUI extends JPanel {
                         new ChiTietHoaDon(maHD, maSP, soLuong, donGia)
                     );
                 }
-                
-                // ===================== 3. CẬP NHẬT TRẠNG THÁI =====================
                 if (maDatBan != null) {
                     ddbDAO.capNhatTrangThai(maDatBan, "Đã thanh toán");
                 }
@@ -496,7 +426,7 @@ public class ChiTietHoaDonSanPham_GUI extends JPanel {
 				// 4. Hiển thị dialog in
                 showHoaDonInDialog(this.modelMonAnGoc, maHD, 
                         df.format(tongTien), df.format(vat), df.format(thanhTien),
-                        df.format(khachTra), df.format(tienThua), this.tenKHHienTai); // Dùng tên KH đã lấy
+                        df.format(khachTra), df.format(tienThua), this.tenKHHienTai); 
                 
 				if (parentPanel != null) {
 					parentPanel.clearOrderTable1();
@@ -517,12 +447,9 @@ public class ChiTietHoaDonSanPham_GUI extends JPanel {
 		}
 	}
 
-	/** * ==================== HIỂN THỊ POPUP IN ====================
-     * Đã sửa lại để nhận 'tenKH' làm tham số, không tự gọi DAO
-     */
 	private void showHoaDonInDialog(DefaultTableModel model, String maHD,
             String tong, String vat, String thanhTien,
-            String tienKhach, String tienThua, String tenKH) { // <<< THAM SỐ tenKH MỚI
+            String tienKhach, String tienThua, String tenKH) { 
 
         Window owner = SwingUtilities.getWindowAncestor(this);
         JDialog dialog = new JDialog(owner, "In hóa đơn");
@@ -530,18 +457,12 @@ public class ChiTietHoaDonSanPham_GUI extends JPanel {
         dialog.setLocationRelativeTo(owner);
         dialog.setLayout(new BorderLayout(10, 10));
 
-        // ================= LẤY TÊN KHÁCH (Đã được truyền vào) =================
-        // Không cần gọi DAO ở đây nữa
-        // 'tenKH' đã được xác định trong saveHoaDonTienMat() hoặc handleThanhToanChuyenKhoan()
-
         // ================= HEADER =================
         JPanel header = new JPanel(new GridLayout(6, 1));
         header.add(new JLabel("Quán Caffe CornCorn", SwingConstants.CENTER));
         header.add(new JLabel("Địa chỉ: 24 Lê Đức Thọ, Gò Vấp", SwingConstants.CENTER));
         header.add(new JLabel("SĐT: 0242 545 567", SwingConstants.CENTER));
         header.add(new JLabel("HÓA ĐƠN THANH TOÁN", SwingConstants.CENTER));
-        
-        // Hiển thị tên khách hàng được truyền vào
         header.add(new JLabel("Khách hàng: " + tenKH, SwingConstants.CENTER)); 
         header.add(new JLabel("Mã HĐ: " + maHD, SwingConstants.CENTER));
 
@@ -593,7 +514,7 @@ public class ChiTietHoaDonSanPham_GUI extends JPanel {
 		return maHD;
 	}
 
-	// ================== NÚT BO TRÒN (Giữ nguyên) ===================
+	// ================== NÚT BO TRÒN ===================
 	class RoundedButton extends JButton {
 		private Color backgroundColor;
 		private Color hoverColor;

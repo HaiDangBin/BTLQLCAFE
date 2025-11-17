@@ -11,7 +11,7 @@ public class Main extends JFrame implements ActionListener {
 
     private JMenuItem mnuTrangChu, mnuKhachHang, mnuNhanVien, mnuHoaDon, mnuKhuyenMai, mnuSanPham, 
             mnuTroGiup, mnuThoat, mnuThongKeDoanhThu, mnuThongKeHoaDon, mnuDonDatBan, mnuDatBan,
-            mnuTKHoaDon, mnuTKDatBan, mnuTkKhachHang, mnuTkNhanVien, mnuTaiKhoan,
+            mnuTkKhachHang, mnuTkNhanVien, mnuTaiKhoan,
             mnuTkKhuyenMai, mnuThue, mnuTkThue;
 
     private JPanel contentWrapperPanel;
@@ -58,7 +58,6 @@ public class Main extends JFrame implements ActionListener {
                 menu.add(mnuTrangChu);
                 menu.addSeparator();
                 menu.add(mnuTaiKhoan);
-                menu.add(mnuTroGiup);
                 menu.addSeparator();
                 menu.add(mnuThoat);
                 break;
@@ -75,8 +74,6 @@ public class Main extends JFrame implements ActionListener {
                 menu.add(mnuDatBan);
                 break;
             case "Tìm Kiếm":
-                menu.add(mnuTkKhachHang);
-                menu.add(mnuTkNhanVien);
                 menu.add(mnuTkSanPham);
                 menu.add(mnuTkKhuyenMai);
                 menu.add(mnuTkThue);
@@ -106,8 +103,6 @@ public class Main extends JFrame implements ActionListener {
         mnuHoaDon = new JMenuItem("Quản lý hóa đơn");
         mnuDatBan = new JMenuItem("Đặt bàn");
         mnuThongKeDoanhThu = new JMenuItem("Báo cáo quản lý");
-        mnuTkKhachHang = new JMenuItem("Tìm kiếm khách hàng");
-        mnuTkNhanVien = new JMenuItem("Tìm kiếm nhân viên");
         mnuTkSanPham = new JMenuItem("Tìm kiếm sản phẩm");
         mnuTkKhuyenMai = new JMenuItem("Tìm kiếm khuyến mãi");
         mnuThue = new JMenuItem("Quản lý thuế");
@@ -116,7 +111,7 @@ public class Main extends JFrame implements ActionListener {
         JMenuItem[] allItems = {
             mnuTrangChu, mnuTroGiup, mnuThoat, mnuTaiKhoan, mnuKhachHang, mnuNhanVien, mnuKhuyenMai, mnuSanPham,
             mnuDonDatBan, mnuDatBan, mnuHoaDon, mnuThongKeDoanhThu,
-            mnuTkKhachHang, mnuTkNhanVien, mnuTkSanPham, mnuTkKhuyenMai, mnuThue, mnuTkThue
+            mnuTkSanPham, mnuTkKhuyenMai, mnuThue, mnuTkThue
         };
 
         for (JMenuItem item : allItems) {

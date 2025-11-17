@@ -300,7 +300,7 @@ VALUES
 ('KH019', N'Lê Thanh Bình', '0908789345', 'binhle89@gmail.com'),
 ('KH020', N'Trần Mỹ Linh', '0917123987', 'linhtran03@gmail.com');
 Go
-select*from KhachHang
+
 -- ===================================
 -- DỮ LIỆU MẪU CHO KHUYẾN MÃI
 -- ===================================
@@ -604,5 +604,6 @@ FOREIGN KEY (maBan) REFERENCES Ban(maBan);
 
 SELECT * FROM KhachHang WHERE maKH = 'KH000';
 
-
+ALTER TABLE DonDatBan
+ALTER COLUMN ngayDat DATETIME2;
 

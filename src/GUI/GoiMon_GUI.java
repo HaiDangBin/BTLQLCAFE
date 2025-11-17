@@ -131,23 +131,17 @@ public class GoiMon_GUI extends JDialog {
 
 		setLayout(new BorderLayout());
 
-		// ---------------------- 1. PANEL NORTH (Thanh tìm kiếm) ----------------------
 		JPanel pNorth = new JPanel(new FlowLayout(FlowLayout.LEFT));
 		pNorth.setBackground(new Color(0, 51, 102));
-		// txtTimKiem đã được khởi tạo trong constructor
-		txtTimKiem.setPreferredSize(new Dimension(300, 30));
-		pNorth.add(txtTimKiem);
+		
 		add(pNorth, BorderLayout.NORTH);
 
-		// ---------------------- 2. PANEL WEST (Bảng Chi tiết đơn hàng)
-		// ----------------------
 		JPanel wrap = new JPanel();
 		wrap.setLayout(new BorderLayout());
 		JPanel pWest = new JPanel();
 		pWest.setLayout(new BorderLayout());
 		pWest.setPreferredSize(new Dimension(800, 0));
 
-		// -- 2a. Header pWest --
 		JPanel pnA = new JPanel();
 		pnA.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 5));
 		pnA.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -176,7 +170,6 @@ public class GoiMon_GUI extends JDialog {
 
 		pWest.add(scrollPane, BorderLayout.CENTER);
 
-		// -- 2c. Footer pWest --
 		JPanel pSouth = new JPanel(new BorderLayout());
 		pSouth.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
